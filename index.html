@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>🎂 Happy Birthday！</title>
+<style>
+/* ============================================================
+   🎂 生日祝福网页
+   ============================================================
+   【用户可修改内容区 — 在文件底部 JS 中修改】
+   1. stories       - 故事句子数组
+   2. totalStories  - 标题中的数字（默认 20）
+   3. birthdayName  - 祝福对象的名字
+   ============================================================ */
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+  width: 100%; height: 100%; overflow: hidden;
+  font-family: Georgia, "宋体", "SimSun", serif;
+  -webkit-font-smoothing: antialiased;
+}
+body { background: #0a0a1a; color: #f5e6ca; }
+
+/* ===== 故事阶段 ===== */
+#story-stage {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 20px; z-index: 10;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  transition: opacity 1.2s ease, transform 1.2s ease;
+}
+#story-stage.fade-out { opacity: 0; transform: scale(1.1); pointer-events: none; }
+
+.star {
+  position: absolute; border-radius: 50%; background: #fff;
+  animation: twinkle var(--dur) ease-in-out infinite alternate;
+}
+@keyframes twinkle {
+  0% { opacity: 0.15; transform: scale(0.8); }
+  100% { opacity: 1; transform: scale(1.2); }
+}
+.meteor {
+  position: absolute; width: 2px; height: 2px; background: #fff;
+  border-radius: 50%; opacity: 0; animation: meteor linear infinite;
+}
+.meteor::after {
+  content: ''; position: absolute; top: 0; left: 0;
+  width: 50px; height: 1px;
+  background: linear-gradient(to left, rgba(255,255,255,0.7), transparent);
+  transform-origin: left center; transform: rotate(215deg);
+}
+@keyframes meteor {
+  0% { opacity: 0; transform: translate(0,0); }
+  5% { opacity: 1; } 70% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-250px,250px); }
+}
+
+#story-title {
+  font-size: clamp(1.4rem, 5vw, 2.2rem);
+  color: #f6c343; text-shadow: 0 0 24px rgba(246,195,67,0.5);
+  margin-bottom: 8px; letter-spacing: 3px; position: relative; z-index: 2;
+}
+#story-subtitle {
+  font-size: clamp(0.75rem, 2.5vw, 1rem);
+  color: rgba(245,230,202,0.5); letter-spacing: 2px;
+  margin-bottom: 36px; position: relative; z-index: 2;
+}
+#story-text-area {
+  position: relative; width: 100%; max-width: 600px; min-height: 120px;
+  display: flex; align-items: center; justify-content: center;
+  text-align: center; z-index: 2;
+}
+.story-line {
+  position: absolute; width: 100%;
+  font-size: clamp(0.95rem, 3.2vw, 1.2rem);
+  line-height: 1.8; color: #f5e6ca; opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.5s ease, transform 0.5s ease; padding: 0 16px;
+}
+.story-line.active { opacity: 1; transform: translateY(0); }
+.story-line.exit { opacity: 0; transform: translateY(-12px); }
+#story-progress {
+  margin-top: 40px; font-size: clamp(0.8rem, 2.5vw, 1rem);
+  color: rgba(245,230,202,0.5); letter-spacing: 1px; position: relative; z-index: 2;
+}
+#skip-hint {
+  position: absolute; bottom: 70px; left: 50%; transform: translateX(-50%);
+  font-size: 0.8rem; color: rgba(245,230,202,0.3); z-index: 2;
+  pointer-events: none; opacity: 0; transition: opacity 1s ease;
+}
+
+/* ===== 主场景 ===== */
+#main-stage {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; z-index: 5;
+  transition: opacity 0.8s ease;
+  background: radial-gradient(ellipse at center, #1a1a3e 0%, #0a0a1a 70%);
+}
+#main-stage.visible { opacity: 1; pointer-events: auto; }
+#main-svg { width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
+
+#corner-icons {
+  position: fixed; top: 16px; right: 16px;
+  font-size: 1.6rem; z-index: 100; opacity: 0;
+  transition: opacity 0.8s ease; user-select: none;
+  display: flex; gap: 4px;
+}
+#corner-icons.show { opacity: 1; }
+
+@keyframes glowBreathe {
+  0%, 100% { filter: url(#glow-soft); }
+  50% { filter: url(#glow-strong); }
+}
+
+/* HTML 星星按钮 */
+.star-btn {
+  position: absolute;
+  width: 60px; height: 60px;
+  border-radius: 50%;
+  border: 2px solid #555;
+  background: rgba(26,26,62,0.8);
+  color: #555;
+  font-size: 28px;
+  line-height: 56px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  transform: translate(-50%, -50%);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.star-btn:active { transform: translate(-50%, -50%) scale(0.95); }
+.star-btn.lit {
+  border-color: #f6c343;
+  color: #f6c343;
+  background: rgba(42,26,0,0.9);
+  box-shadow: 0 0 20px rgba(246,195,67,0.6), 0 0 40px rgba(246,195,67,0.3);
+  cursor: default;
+  pointer-events: none;
+}
+
+/* 拼字槽位 */
+.puzzle-slot {
+  position: absolute;
+  width: 60px; height: 60px;
+  border: 2px dashed rgba(246,195,67,0.4);
+  border-radius: 8px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.puzzle-slot-num {
+  position: absolute;
+  width: 60px; text-align: center;
+  color: rgba(246,195,67,0.3);
+  font-size: 14px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+/* 拼字方块 */
+.puzzle-char {
+  position: absolute;
+  width: 56px; height: 56px;
+  border: 1.5px solid #f6c343;
+  border-radius: 8px;
+  background: #1a1a3e;
+  color: #f5e6ca;
+  font-size: 30px;
+  line-height: 52px;
+  text-align: center;
+  cursor: grab;
+  transform: translate(-50%, -50%);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  z-index: 2;
+  transition: box-shadow 0.2s ease;
+}
+.puzzle-char:active { cursor: grabbing; }
+.puzzle-char.locked {
+  cursor: default;
+  border-color: #f6c343;
+  box-shadow: 0 0 15px rgba(246,195,67,0.5);
+  pointer-events: none;
+}
+</style>
+</head>
+<body>
+
+<!-- ===== 故事阶段 ===== -->
+<div id="story-stage">
+  <div id="story-title"></div>
+  <div id="story-subtitle"></div>
+  <div id="story-text-area"></div>
+  <div id="story-progress"></div>
+  <div id="skip-hint">👆 点击屏幕跳过</div>
+</div>
+
+<!-- ===== 主场景 ===== -->
+<div id="main-stage">
+  <!-- HTML 星星覆盖层 -->
+  <div id="stars-overlay" style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:10;display:none;"></div>
+  <!-- HTML 拼字覆盖层 -->
+  <div id="puzzle-overlay" style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:10;display:none;"></div>
+  <svg id="main-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 800" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <filter id="particle-glow" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <filter id="glow-soft" x="-20%" y="-20%" width="140%" height="140%">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <filter id="glow-strong" x="-30%" y="-30%" width="160%" height="160%">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <filter id="fw-glow" x="-100%" y="-100%" width="300%" height="300%">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <filter id="card-shadow" x="-10%" y="-5%" width="120%" height="115%">
+        <feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="rgba(0,0,0,0.5)"/>
+      </filter>
+      <linearGradient id="cardBorder" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#f6c343"/>
+        <stop offset="50%" stop-color="#f0a6ca"/>
+        <stop offset="100%" stop-color="#f6c343"/>
+      </linearGradient>
+      <clipPath id="tear-clip"><rect id="tear-rect" x="0" y="0" width="500" height="800"/></clipPath>
+      <!-- 星星发光（用于点亮后的星星） -->
+      <filter id="star-glow" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="b"/>
+        <feMerge>
+          <feMergeNode in="b"/>
+          <feMergeNode in="b"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+    </defs>
+
+    <!-- 图层 -->
+    <g id="particles-layer"></g>
+    <g id="fireworks-layer"></g>
+    <g id="confetti-layer"></g>
+    <g id="stars-layer" opacity="0"></g>
+    <g id="puzzle-layer" opacity="0"></g>
+
+    <!-- 星星进度 -->
+    <text id="star-progress" x="250" y="680" text-anchor="middle" font-family="Georgia,'宋体',serif"
+          font-size="16" fill="rgba(245,230,202,0.5)" opacity="0">✦ 0 / 8</text>
+    <!-- 星星阶段提示 -->
+    <text id="star-hint" x="250" y="720" text-anchor="middle" font-family="Georgia,'宋体',serif"
+          font-size="14" fill="rgba(245,230,202,0.4)" opacity="0">👆 点亮所有星星</text>
+    <!-- 拼字阶段提示 -->
+    <text id="puzzle-hint" x="250" y="400" text-anchor="middle" font-family="Georgia,'宋体',serif"
+          font-size="14" fill="rgba(245,230,202,0.4)" opacity="0">👆 拖拽文字到正确位置</text>
+
+    <!-- 步骤1：标题文字 -->
+    <g id="step1-title" opacity="0" pointer-events="none">
+      <text x="250" y="340" text-anchor="middle" font-family="Georgia,'宋体',serif"
+            font-size="48" font-weight="bold" fill="#f6c343" filter="url(#glow-soft)">生日快乐</text>
+      <text x="250" y="385" text-anchor="middle" font-family="Georgia,'宋体',serif"
+            font-size="18" fill="#f0a6ca" filter="url(#glow-soft)">Birthday Gift</text>
+    </g>
+
+    <!-- 礼物盒（带 clipPath） -->
+    <g id="gift-box" transform="translate(250, 650)" opacity="0" clip-path="url(#tear-clip)" pointer-events="none">
+      <rect x="-60" y="0" width="120" height="100" rx="8" fill="#f0a6ca" stroke="#e896b8" stroke-width="1.5"/>
+      <rect x="-5" y="0" width="10" height="100" fill="#f6c343" opacity="0.9"/>
+      <rect x="-60" y="44" width="120" height="12" fill="#f6c343" opacity="0.9"/>
+      <rect x="-65" y="-18" width="130" height="22" rx="6" fill="#e896b8" stroke="#d48aaa" stroke-width="1"/>
+      <rect x="-5" y="-18" width="10" height="22" fill="#f6c343" opacity="0.9"/>
+      <g transform="translate(0, -28)">
+        <path d="M 0,0 C -8,-18 -35,-22 -30,-8 C -25,2 -8,4 0,0 Z" fill="#f6c343" stroke="#d4a520" stroke-width="0.8"/>
+        <path d="M 0,0 C 8,-18 35,-22 30,-8 C 25,2 8,4 0,0 Z" fill="#f6c343" stroke="#d4a520" stroke-width="0.8"/>
+        <ellipse cx="0" cy="0" rx="5" ry="4" fill="#d4a520"/>
+      </g>
+    </g>
+
+    <!-- 光泽扫过 -->
+    <rect id="sheen-overlay" x="200" y="380" width="100" height="140" rx="8" fill="white" opacity="0" pointer-events="none"/>
+
+    <!-- ===== 祝福卡片 ===== -->
+    <g id="blessing-card" opacity="0" transform="translate(250,500) scale(0.8)">
+      <rect x="-190" y="-240" width="380" height="480" rx="22"
+            fill="#0e0e24" stroke="url(#cardBorder)" stroke-width="3" filter="url(#card-shadow)"/>
+      <rect x="-170" y="-220" width="340" height="440" rx="16"
+            fill="none" stroke="#f6c343" stroke-width="0.5" opacity="0.2"/>
+      <!-- 四角花饰 -->
+      <g opacity="0.4" fill="#f6c343">
+        <path d="M-165,-205 Q-155,-215 -145,-205 Q-155,-195 -165,-205Z"/>
+        <path d="M145,-205 Q155,-215 165,-205 Q155,-195 145,-205Z"/>
+        <path d="M-165,205 Q-155,215 -145,205 Q-155,195 -165,205Z"/>
+        <path d="M145,205 Q155,215 165,205 Q155,195 145,205Z"/>
+      </g>
+      <!-- 爱心 -->
+      <g id="card-heart" opacity="0" transform="translate(0,-185)">
+        <path d="M 0,8 C -2,-2 -12,-10 -18,-6 C -24,-2 -22,8 -18,12 C -12,18 0,24 0,24 C 0,24 12,18 18,12 C 22,8 24,-2 18,-6 C 12,-10 2,-2 0,8Z"
+              fill="#f0a6ca" stroke="#e899b8" stroke-width="0.8" opacity="0.7"/>
+      </g>
+      <line x1="-130" y1="-165" x2="130" y2="-165" stroke="#f6c343" stroke-width="0.8" opacity="0.25"/>
+      <text id="card-title" x="0" y="-130" text-anchor="middle" font-family="Georgia,'宋体',serif"
+            font-size="26" font-weight="bold" fill="#f6c343" filter="url(#glow-soft)" opacity="0">🎂 生日快乐 🎂</text>
+      <text id="card-name" x="0" y="-95" text-anchor="middle" font-family="Georgia,'宋体',serif"
+            font-size="15" fill="#f0a6ca" opacity="0"></text>
+      <line id="card-divider" x1="-110" y1="-72" x2="110" y2="-72" stroke="#f6c343" stroke-width="0.5" opacity="0"/>
+      <g id="blessings-group"></g>
+      <line x1="-130" y1="175" x2="130" y2="175" stroke="#f6c343" stroke-width="0.8" opacity="0.25"/>
+      <clipPath id="card-clip"><rect x="-190" y="-240" width="380" height="480" rx="22"/></clipPath>
+      <rect id="card-sheen" x="-190" y="-240" width="80" height="480" fill="white" opacity="0" clip-path="url(#card-clip)"/>
+    </g>
+
+    <!-- 通关祝贺文字 -->
+    <g id="congrats-text" opacity="0">
+      <text x="250" y="380" text-anchor="middle" font-family="Georgia,'宋体',serif"
+            font-size="36" font-weight="bold" fill="#f6c343" filter="url(#glow-soft)">你真棒！🫰</text>
+    </g>
+
+    <!-- ===== 最终快递提醒（全屏独立画面） ===== -->
+    <g id="delivery-screen" opacity="0">
+      <text id="delivery-line1" x="250" y="370" text-anchor="middle" font-family="Georgia,'宋体',serif"
+            font-size="22" fill="#f5e6ca" opacity="0">对了，还有一件事——</text>
+      <text id="delivery-line2" x="250" y="415" text-anchor="middle" font-family="Georgia,'宋体',serif"
+            font-size="20" fill="#f5e6ca" opacity="0">给你的生日礼物正在快递ing</text>
+      <text id="delivery-line3" x="250" y="455" text-anchor="middle" font-family="Georgia,'宋体',serif"
+            font-size="22" fill="#f6c343" filter="url(#glow-soft)" opacity="0">要记得查收哦 😉</text>
+      <text id="delivery-sign" x="420" y="530" text-anchor="end" font-family="Georgia,'宋体',serif"
+            font-size="15" fill="rgba(245,230,202,0.5)" opacity="0">—— wy, 2026.6.26</text>
+    </g>
+  </svg>
+</div>
+
+<div id="corner-icons"><span>🎂</span><span>🌙</span></div>
+
+<script>
+// ============================================================
+// 【用户可修改内容区】
+// ============================================================
+const stories = [
+  { text: "五一假期我们天天分享日常，比上班还勤快。", dur: 3000 },
+  { text: "有一次从网吧出来遇上大暴雨，在街边饭馆躲雨——而你化身线上饭搭子，陪我一起吃。", dur: 4500 },
+  { text: "作业不会的时候，第一个想到的就是你。", dur: 3000 },
+  { text: "偶尔还蹭用你的工具箱，嘿嘿😜", dur: 3000 },
+  { text: "记得那次下雨你来给我送过伞，我却连伞都不会折，怪不好意思的，哈哈哈哈。", dur: 4000 },
+  { text: "说好了到龙南你请我喝杨村米酒，不许赖账！", dur: 3000 },
+  { text: "\"嘿嘿一言为定！🐕截图为证\"——我可是有证据的。", dur: 3500 },
+  { text: "晚安晚安晚安——说了好多遍，每一遍都是认真的。", dur: 3500 },
+  { text: "今天是你的生日，想跟你说——", dur: 3000 },
+  { text: "生日快乐呀，真的希望你一切都好。", dur: 3500 },
+  { text: "接下来送上我的祝福呀😄", dur: 3000 },
+];
+const totalStories = 12;
+const birthdayName = "LSQ";
+
+// ============================================================
+// 实现代码
+// ============================================================
+(function () {
+  'use strict';
+
+  // --- DOM ---
+  const storyStage     = document.getElementById('story-stage');
+  const storyTitle     = document.getElementById('story-title');
+  const storySubtitle  = document.getElementById('story-subtitle');
+  const storyTextArea  = document.getElementById('story-text-area');
+  const storyProgress  = document.getElementById('story-progress');
+  const skipHint       = document.getElementById('skip-hint');
+  const mainStage      = document.getElementById('main-stage');
+  const step1Title     = document.getElementById('step1-title');
+  const giftBox        = document.getElementById('gift-box');
+  const tearRect       = document.getElementById('tear-rect');
+  const sheenOverlay   = document.getElementById('sheen-overlay');
+  const particlesLayer = document.getElementById('particles-layer');
+  const fireworksLayer = document.getElementById('fireworks-layer');
+  const confettiLayer  = document.getElementById('confetti-layer');
+  const blessingCard   = document.getElementById('blessing-card');
+  const cardTitle      = document.getElementById('card-title');
+  const cardName       = document.getElementById('card-name');
+  const cardDivider    = document.getElementById('card-divider');
+  const cardHeart      = document.getElementById('card-heart');
+  const cardSheen      = document.getElementById('card-sheen');
+  const deliveryScreen = document.getElementById('delivery-screen');
+  const deliveryLine1  = document.getElementById('delivery-line1');
+  const deliveryLine2  = document.getElementById('delivery-line2');
+  const deliveryLine3  = document.getElementById('delivery-line3');
+  const deliverySign   = document.getElementById('delivery-sign');
+  const starsLayer     = document.getElementById('stars-layer');
+  const starsOverlay   = document.getElementById('stars-overlay');
+  const starProgress   = document.getElementById('star-progress');
+  const starHint       = document.getElementById('star-hint');
+  const puzzleLayer    = document.getElementById('puzzle-layer');
+  const puzzleOverlay  = document.getElementById('puzzle-overlay');
+  const puzzleHint     = document.getElementById('puzzle-hint');
+  const congratsText   = document.getElementById('congrats-text');
+  const blessingsGroup = document.getElementById('blessings-group');
+  const cornerIcons    = document.getElementById('corner-icons');
+
+  const STORY_INTERVAL = 2500;
+  const STORY_FADE     = 500;
+  const TEAR_DURATION  = 1500;
+  const PARTICLE_COUNT = 28;
+  const VW = 500, VH = 800;
+
+  let currentStory = 0;
+  let storyTimer   = null;
+  let storiesDone  = false;
+
+  // ============================================================
+  // 星空
+  // ============================================================
+  (function () {
+    for (let i = 0; i < 60; i++) {
+      const s = document.createElement('div');
+      s.className = 'star';
+      s.style.left = Math.random()*100+'%';
+      s.style.top = Math.random()*100+'%';
+      const sz = 1+Math.random()*2;
+      s.style.width = sz+'px'; s.style.height = sz+'px';
+      s.style.setProperty('--dur', (1.5+Math.random()*3)+'s');
+      s.style.animationDelay = Math.random()*3+'s';
+      storyStage.appendChild(s);
+    }
+    for (let i = 0; i < 2; i++) {
+      const m = document.createElement('div');
+      m.className = 'meteor';
+      m.style.right = Math.random()*50+'%';
+      m.style.top = Math.random()*25+'%';
+      m.style.animationDuration = (1.5+Math.random())+'s';
+      m.style.animationDelay = (3+Math.random()*8)+'s';
+      storyStage.appendChild(m);
+    }
+  })();
+
+  // ============================================================
+  // 故事放映
+  // ============================================================
+  storyTitle.textContent = 'Happy Birthday！';
+  storySubtitle.textContent = '我们之间的回忆';
+  stories.forEach(function (item, i) {
+    const el = document.createElement('div');
+    el.className = 'story-line';
+    el.textContent = item.text;
+    storyTextArea.appendChild(el);
+  });
+
+  function updateProgress() {
+    storyProgress.textContent = (currentStory+1)+' / '+stories.length;
+  }
+
+  function playNextStory() {
+    if (storyTimer) { clearTimeout(storyTimer); storyTimer = null; }
+    const lines = storyTextArea.querySelectorAll('.story-line');
+    lines.forEach(function (l) {
+      if (l.classList.contains('active')) {
+        l.classList.remove('active'); l.classList.add('exit');
+        setTimeout(function(){ l.classList.remove('exit'); }, STORY_FADE);
+      }
+    });
+    if (currentStory >= stories.length) { onStoriesComplete(); return; }
+    updateProgress();
+    const a = lines[currentStory];
+    if (a) setTimeout(function(){ a.classList.add('active'); }, 60);
+    currentStory++;
+    var dur = stories[currentStory - 1] ? stories[currentStory - 1].dur : STORY_INTERVAL;
+    storyTimer = setTimeout(playNextStory, dur);
+  }
+
+  function onStoriesComplete() {
+    storiesDone = true;
+    if (storyTimer) { clearTimeout(storyTimer); storyTimer = null; }
+    storyProgress.textContent = stories.length+' / '+stories.length;
+    setTimeout(function(){
+      storyStage.classList.add('fade-out');
+      setTimeout(function(){
+        mainStage.classList.add('visible');
+        startReveal();
+      }, 1300);
+    }, 600);
+  }
+
+  // 点击跳过
+  setTimeout(function(){ skipHint.style.opacity='1'; }, 3000);
+  setTimeout(function(){ skipHint.style.opacity='0'; }, 8000);
+  document.addEventListener('click', function () {
+    initAudio(); // 浏览器要求用户交互后才能播放音频
+    if (storiesDone) return;
+    playNextStory();
+    skipHint.style.opacity = '0';
+  });
+
+  playNextStory();
+
+  // ============================================================
+  // 音效系统（Web Audio API）
+  // ============================================================
+  var audioCtx = null;
+
+  /** 初始化 AudioContext（需在用户交互后调用） */
+  function initAudio() {
+    if (audioCtx) return;
+    try {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    } catch (e) { /* 静默失败 */ }
+  }
+
+  /** 播放简单音效 */
+  function playTone(freq, duration, vol) {
+    if (!audioCtx) return;
+    try {
+      var osc = audioCtx.createOscillator();
+      var gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(vol || 0.3, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration);
+    } catch (e) { /* 静默失败 */ }
+  }
+
+  /** "叮"清脆声 — 点亮星星/放对字块 */
+  function playDing() { playTone(800, 0.15, 0.3); }
+
+  /** "咚"低沉声 — 放错字块 */
+  function playThud() { playTone(300, 0.1, 0.2); }
+
+  /** 和弦上升 — 拼字通关 */
+  function playChord() {
+    playTone(523, 0.3, 0.25);
+    setTimeout(function(){ playTone(659, 0.3, 0.25); }, 150);
+    setTimeout(function(){ playTone(784, 0.4, 0.3); }, 300);
+  }
+
+  // ============================================================
+  // 公共工具
+  // ============================================================
+  function svgEl(tag, attrs) {
+    const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+    for (const k in attrs) el.setAttribute(k, attrs[k]);
+    return el;
+  }
+
+  // 粒子
+  function startParticles() {
+    const colors = ['#f6c343','#f0a6ca','#ffeaa7','#fab1a0','#a29bfe','#fd79a8'];
+    const ps = [];
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      const r = 2+Math.random()*5, sx = Math.random()*VW, sy = VH+Math.random()*60;
+      const c = svgEl('circle', {cx:sx, cy:sy, r:r, fill:colors[i%colors.length], filter:'url(#particle-glow)', opacity:0});
+      particlesLayer.appendChild(c);
+      ps.push({el:c, baseX:sx, y:sy, speed:20+Math.random()*40, wAmp:8+Math.random()*16,
+        wFreq:0.3+Math.random(), phase:Math.random()*Math.PI*2, opacity:0, fadeIn:true});
+    }
+    let last = performance.now();
+    function tick(now) {
+      const dt = (now-last)/1000; last = now;
+      for (const p of ps) {
+        p.y -= p.speed*dt;
+        const wx = p.baseX + Math.sin(now/1000*p.wFreq+p.phase)*p.wAmp;
+        if (p.fadeIn) { p.opacity=Math.min(p.opacity+dt*2,0.8); if(p.opacity>=0.8)p.fadeIn=false; }
+        if (p.y<40) p.opacity = Math.max(p.opacity-dt*3,0);
+        if (p.y<-15||p.opacity<=0) {
+          p.y=VH+Math.random()*60; p.baseX=Math.random()*VW; p.speed=20+Math.random()*40;
+          p.opacity=0; p.fadeIn=true; p.phase=Math.random()*Math.PI*2;
+        }
+        p.el.setAttribute('cx',wx); p.el.setAttribute('cy',p.y); p.el.setAttribute('opacity',p.opacity);
+      }
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  // 单颗烟花
+  function fireOneFirework(cx, cy, color) {
+    const n = 20 + Math.floor(Math.random()*14);
+    const g = svgEl('g', {filter:'url(#fw-glow)'});
+    fireworksLayer.appendChild(g);
+    // 中心闪光
+    g.appendChild(svgEl('circle', {cx:cx, cy:cy, r:5, fill:'white', opacity:1}));
+    setTimeout(function(){ if(g.firstChild) g.firstChild.setAttribute('opacity','0'); }, 180);
+    // 火花
+    const sparks = [];
+    for (let j=0; j<n; j++) {
+      const a = j/n*Math.PI*2, d = 30+Math.random()*60;
+      const s = svgEl('circle', {cx:cx, cy:cy, r:1.5+Math.random()*1.5, fill:color, opacity:1});
+      g.appendChild(s);
+      sparks.push({el:s, tx:cx+Math.cos(a)*d, ty:cy+Math.sin(a)*d, ox:cx, oy:cy});
+    }
+    const st = performance.now();
+    function anim(now) {
+      const t = Math.min((now-st)/900,1), e = 1-Math.pow(1-t,3);
+      for (const s of sparks) {
+        s.el.setAttribute('cx', s.ox+(s.tx-s.ox)*e);
+        s.el.setAttribute('cy', s.oy+(s.ty-s.oy)*e + t*t*25);
+        s.el.setAttribute('opacity', 1-t);
+      }
+      if (t<1) requestAnimationFrame(anim);
+      else fireworksLayer.removeChild(g);
+    }
+    requestAnimationFrame(anim);
+  }
+
+  // 彩纸
+  function launchConfetti(count) {
+    const colors = ['#f6c343','#f0a6ca','#a29bfe','#fd79a8','#00cec9','#fdcb6e','#55efc4','#fab1a0'];
+    for (let i = 0; i < count; i++) {
+      const w=4+Math.random()*6, h=8+Math.random()*12;
+      const x=Math.random()*VW, y=-20-Math.random()*100;
+      const col=colors[Math.floor(Math.random()*colors.length)];
+      const rot=Math.random()*360;
+      const r = svgEl('rect', {x:x, y:y, width:w, height:h, rx:1, fill:col, opacity:0.9,
+        transform:'rotate('+rot+','+(x+w/2)+','+(y+h/2)+')'});
+      confettiLayer.appendChild(r);
+      const spd=80+Math.random()*120, drift=(Math.random()-0.5)*60, rs=(Math.random()-0.5)*720;
+      const st=performance.now(), delay=Math.random()*2500;
+      (function(rr,x,y,rot){
+        function anim(now){
+          const el=now-st-delay; if(el<0){requestAnimationFrame(anim);return;}
+          const t=el/1000, cy=y+spd*t, cx=x+drift*Math.sin(t*2), rv=rot+rs*t;
+          const op=cy>VH?0:Math.max(0,1-t*0.12);
+          rr.setAttribute('x',cx); rr.setAttribute('y',cy);
+          rr.setAttribute('transform','rotate('+rv+','+(cx+w/2)+','+(cy+h/2)+')');
+          rr.setAttribute('opacity',op);
+          if(op>0) requestAnimationFrame(anim);
+          else if(confettiLayer.contains(rr)) confettiLayer.removeChild(rr);
+        }
+        requestAnimationFrame(anim);
+      })(r,x,y,rot);
+    }
+  }
+
+  // ============================================================
+  // 阶段 A：点亮星星（HTML 按钮覆盖层，最可靠的点击方式）
+  // ============================================================
+  var STAR_COUNT = 8;
+  var starsLit = 0;
+  var starBtns = []; // HTML button 元素
+
+  /** 将 SVG 坐标转为屏幕百分比位置 */
+  function svgToPercent(svgX, svgY) {
+    var svg = document.getElementById('main-svg');
+    var rect = svg.getBoundingClientRect();
+    var scaleX = rect.width / VW;
+    var scaleY = rect.height / VH;
+    var scale = Math.min(scaleX, scaleY);
+    var offsetX = (rect.width - VW * scale) / 2;
+    var offsetY = (rect.height - VH * scale) / 2;
+    return {
+      left: ((offsetX + svgX * scale) / rect.width * 100) + '%',
+      top: ((offsetY + svgY * scale) / rect.height * 100) + '%'
+    };
+  }
+
+  /** 创建星星：HTML 按钮，网格布局 */
+  function createStars() {
+    starsOverlay.innerHTML = '';
+    starsOverlay.style.display = 'block';
+    starBtns = [];
+    starsLit = 0;
+    starProgress.textContent = '✦ 0 / ' + STAR_COUNT;
+    starProgress.setAttribute('opacity', '1');
+    starHint.setAttribute('opacity', '1');
+
+    // 网格布局：3-3-2
+    var positions = [
+      {x:125, y:200}, {x:250, y:200}, {x:375, y:200},
+      {x:90,  y:360}, {x:250, y:360}, {x:410, y:360},
+      {x:170, y:520}, {x:330, y:520}
+    ];
+
+    for (var i = 0; i < STAR_COUNT; i++) {
+      var pos = positions[i];
+      var btn = document.createElement('div');
+      btn.className = 'star-btn';
+      btn.textContent = '★';
+      var pct = svgToPercent(pos.x, pos.y);
+      btn.style.left = pct.left;
+      btn.style.top = pct.top;
+      starsOverlay.appendChild(btn);
+
+      (function(idx, button) {
+        button.addEventListener('click', function(e) {
+          e.stopPropagation();
+          lightStar(idx);
+        });
+      })(i, btn);
+
+      starBtns.push(btn);
+    }
+  }
+
+  /** 点亮一颗星星 */
+  function lightStar(idx) {
+    if (starBtns[idx].classList.contains('lit')) return;
+    starBtns[idx].classList.add('lit');
+    starsLit++;
+    starProgress.textContent = '✦ ' + starsLit + ' / ' + STAR_COUNT;
+    playDing();
+
+    if (starsLit >= STAR_COUNT) {
+      setTimeout(onStarsComplete, 500);
+    }
+  }
+
+  /** 全部星星点亮后的通关动画 */
+  function onStarsComplete() {
+    starHint.setAttribute('opacity', '0');
+    var flashCount = 0;
+    function flash() {
+      var op = flashCount % 2 === 0 ? '0.4' : '1';
+      starBtns.forEach(function(b) { b.style.opacity = op; });
+      flashCount++;
+      if (flashCount < 6) setTimeout(flash, 150);
+      else {
+        starsOverlay.style.display = 'none';
+        setTimeout(startPuzzlePhase, 300);
+      }
+    }
+    flash();
+  }
+
+  // ============================================================
+  // 阶段 B：拼出"生日快乐"（HTML 拖拽，最可靠）
+  // ============================================================
+  var PUZZLE_CHARS = ['生', '日', '快', '乐'];
+  var puzzleSlots = [];   // {el, numEl, char, filled, svgX, svgY}
+  var puzzleBlocks = [];  // {el, char, x, y, locked, slotIdx}
+  var lockedCount = 0;
+  var draggingIdx = null;
+  var dragOffX = 0, dragOffY = 0;
+
+  /** 创建拼字游戏界面（HTML 元素） */
+  function createPuzzle() {
+    puzzleOverlay.innerHTML = '';
+    puzzleOverlay.style.display = 'block';
+    puzzleSlots = [];
+    puzzleBlocks = [];
+    lockedCount = 0;
+    draggingIdx = null;
+
+    // 4 个槽位（上方居中）
+    var slotSize = 60;
+    var slotGap = 20;
+    var totalW = PUZZLE_CHARS.length * slotSize + (PUZZLE_CHARS.length - 1) * slotGap;
+    var startSvgX = (VW - totalW) / 2;
+
+    for (var i = 0; i < PUZZLE_CHARS.length; i++) {
+      var sx = startSvgX + i * (slotSize + slotGap) + slotSize / 2;
+      var sy = 280;
+      var pct = svgToPercent(sx, sy);
+
+      var slotEl = document.createElement('div');
+      slotEl.className = 'puzzle-slot';
+      slotEl.style.left = pct.left;
+      slotEl.style.top = pct.top;
+      puzzleOverlay.appendChild(slotEl);
+
+      var numEl = document.createElement('div');
+      numEl.className = 'puzzle-slot-num';
+      numEl.style.left = pct.left;
+      numEl.style.top = pct.top;
+      numEl.textContent = ['①','②','③','④'][i];
+      puzzleOverlay.appendChild(numEl);
+
+      puzzleSlots.push({ el: slotEl, numEl: numEl, char: PUZZLE_CHARS[i], filled: false, svgX: sx, svgY: sy });
+    }
+
+    // 4 个字块（打乱顺序，散落在下方）
+    var blockChars = PUZZLE_CHARS.slice();
+    for (var i = blockChars.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = blockChars[i]; blockChars[i] = blockChars[j]; blockChars[j] = tmp;
+    }
+
+    var blockSvgY = 520;
+    var blockSvgPositions = [];
+    for (var i = 0; i < 4; i++) {
+      var bx;
+      var attempts = 0;
+      do {
+        bx = 80 + Math.random() * (VW - 160);
+        attempts++;
+      } while (attempts < 50 && blockSvgPositions.some(function(p) { return Math.abs(p - bx) < 70; }));
+      blockSvgPositions.push(bx);
+    }
+
+    for (var i = 0; i < blockChars.length; i++) {
+      var bx = blockSvgPositions[i];
+      var by = blockSvgY + (Math.random() - 0.5) * 30;
+      var pct = svgToPercent(bx, by);
+
+      var charEl = document.createElement('div');
+      charEl.className = 'puzzle-char';
+      charEl.textContent = blockChars[i];
+      charEl.style.left = pct.left;
+      charEl.style.top = pct.top;
+      puzzleOverlay.appendChild(charEl);
+
+      // 拖拽事件
+      (function(idx, el) {
+        el.addEventListener('mousedown', function(e) { e.preventDefault(); startDrag(idx, e.clientX, e.clientY); });
+        el.addEventListener('touchstart', function(e) { e.preventDefault(); var t = e.touches[0]; startDrag(idx, t.clientX, t.clientY); }, {passive:false});
+      })(i, charEl);
+
+      puzzleBlocks.push({ el: charEl, char: blockChars[i], svgX: bx, svgY: by, locked: false, slotIdx: -1 });
+    }
+
+    // 全局拖拽事件
+    document.addEventListener('mousemove', onDragMove);
+    document.addEventListener('mouseup', onDragEnd);
+    document.addEventListener('touchmove', onDragMove, {passive:false});
+    document.addEventListener('touchend', onDragEnd);
+  }
+
+  /** 开始拖拽 */
+  function startDrag(idx, clientX, clientY) {
+    if (puzzleBlocks[idx].locked) return;
+    draggingIdx = idx;
+    var b = puzzleBlocks[idx];
+    // 记录鼠标相对于元素中心的偏移（屏幕坐标）
+    var rect = b.el.getBoundingClientRect();
+    dragOffX = clientX - (rect.left + rect.width / 2);
+    dragOffY = clientY - (rect.top + rect.height / 2);
+    b.el.style.zIndex = '10';
+    b.el.style.transition = 'none';
+  }
+
+  /** 拖拽移动 */
+  function onDragMove(e) {
+    if (draggingIdx === null) return;
+    e.preventDefault();
+    var clientX, clientY;
+    if (e.touches && e.touches.length > 0) {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else {
+      clientX = e.clientX;
+      clientY = e.clientY;
+    }
+    var b = puzzleBlocks[draggingIdx];
+    // 直接用屏幕坐标定位（CSS left/top 百分比）
+    var overlayRect = puzzleOverlay.getBoundingClientRect();
+    var newLeft = ((clientX - dragOffX - overlayRect.left) / overlayRect.width * 100);
+    var newTop = ((clientY - dragOffY - overlayRect.top) / overlayRect.height * 100);
+    b.el.style.left = newLeft + '%';
+    b.el.style.top = newTop + '%';
+  }
+
+  /** 拖拽结束 */
+  function onDragEnd(e) {
+    if (draggingIdx === null) return;
+    var b = puzzleBlocks[draggingIdx];
+    b.el.style.zIndex = '2';
+
+    // 检查是否落在对应槽位
+    var matched = false;
+    for (var i = 0; i < puzzleSlots.length; i++) {
+      var s = puzzleSlots[i];
+      if (s.char === b.char && !s.filled) {
+        // 比较当前拖拽位置与槽位位置（都用 SVG 坐标）
+        var blockRect = b.el.getBoundingClientRect();
+        var slotRect = s.el.getBoundingClientRect();
+        var dx = (blockRect.left + blockRect.width/2) - (slotRect.left + slotRect.width/2);
+        var dy = (blockRect.top + blockRect.height/2) - (slotRect.top + slotRect.height/2);
+        var dist = Math.sqrt(dx*dx + dy*dy);
+
+        if (dist < 45) {
+          // 放对位置 → 锁定
+          matched = true;
+          b.locked = true;
+          b.slotIdx = i;
+          s.filled = true;
+          lockedCount++;
+          // 吸附到槽位
+          b.el.style.transition = 'all 0.2s ease';
+          b.el.style.left = s.el.style.left;
+          b.el.style.top = s.el.style.top;
+          b.el.classList.add('locked');
+          playDing();
+
+          if (lockedCount >= PUZZLE_CHARS.length) {
+            setTimeout(onPuzzleComplete, 300);
+          }
+          break;
+        }
+      }
+    }
+
+    if (!matched) {
+      // 放错 → 弹回
+      playThud();
+      b.el.style.transition = 'all 0.3s ease-out';
+      b.el.style.left = svgToPercent(b.svgX, b.svgY).left;
+      b.el.style.top = svgToPercent(b.svgX, b.svgY).top;
+      setTimeout(function() { b.el.style.transition = ''; }, 350);
+    }
+
+    draggingIdx = null;
+  }
+
+  /** 拼字通关动画 */
+  function onPuzzleComplete() {
+    playChord();
+    puzzleHint.setAttribute('opacity', '0');
+    // 所有字块发光放大
+    puzzleBlocks.forEach(function(b) {
+      b.el.style.transition = 'all 0.4s ease';
+      b.el.style.boxShadow = '0 0 25px rgba(246,195,67,0.8)';
+      b.el.style.transform = 'translate(-50%, -50%) scale(1.2)';
+    });
+    setTimeout(function() {
+      puzzleOverlay.style.transition = 'opacity 0.5s ease';
+      puzzleOverlay.style.opacity = '0';
+      setTimeout(function() {
+        puzzleOverlay.style.display = 'none';
+        puzzleOverlay.style.opacity = '1';
+        startCelebration();
+      }, 500);
+    }, 600);
+  }
+
+  // 弹性运动
+  function bounceIn(el, fromY, toY, cx, dur, cb) {
+    const st = performance.now();
+    function step(now) {
+      const t = Math.min((now-st)/dur,1);
+      const e = t<0.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+      const os = t>0.7?Math.sin((t-0.7)/0.3*Math.PI*2)*8*(1-t):0;
+      el.setAttribute('transform','translate('+cx+','+(fromY+(toY-fromY)*e+os)+')');
+      if(t<1) requestAnimationFrame(step);
+      else { el.setAttribute('transform','translate('+cx+','+toY+')'); if(cb)cb(); }
+    }
+    requestAnimationFrame(step);
+  }
+
+  function swingBox(el, cx, cy, cb) {
+    const angles = [-5,5,-5,0]; let idx=0;
+    (function next(){
+      if(idx>=angles.length){if(cb)cb();return;}
+      el.setAttribute('transform','translate('+cx+','+cy+') rotate('+angles[idx]+',0,0)');
+      idx++; setTimeout(next,200);
+    })();
+  }
+
+  function fadeIn(el, dur, cb) {
+    el.style.transition='opacity '+dur+'ms ease';
+    el.setAttribute('opacity','1');
+    if(cb) setTimeout(cb, dur);
+  }
+  function fadeOut(el, dur, cb) {
+    el.style.transition='opacity '+dur+'ms ease';
+    el.setAttribute('opacity','0');
+    if(cb) setTimeout(cb, dur);
+  }
+
+  // ============================================================
+  // 主动画序列
+  // ============================================================
+  function startReveal() {
+    startParticles();
+
+    // 步骤1：标题文字
+    setTimeout(function(){
+      fadeIn(step1Title, 500, function(){
+        step1Title.style.animation = 'glowBreathe 1.5s ease-in-out infinite';
+      });
+    }, 300);
+
+    // 2.5s：标题缩小淡出
+    setTimeout(function(){
+      step1Title.style.animation='';
+      step1Title.style.transition='opacity 0.5s ease, transform 0.5s ease';
+      step1Title.setAttribute('opacity','0');
+      const st=performance.now();
+      function shrink(now){
+        const t=Math.min((now-st)/500,1);
+        step1Title.setAttribute('transform','translate(250,360) scale('+(1-t*0.3)+') translate(-250,-360)');
+        if(t<1) requestAnimationFrame(shrink);
+      }
+      requestAnimationFrame(shrink);
+    }, 2500);
+
+    // 3.2s：礼物盒弹出
+    setTimeout(function(){
+      giftBox.setAttribute('opacity','1');
+      bounceIn(giftBox, 600, 420, 250, 800, function(){
+        swingBox(giftBox, 250, 420, function(){
+          setTimeout(tearOpen, 300);
+        });
+      });
+    }, 3200);
+  }
+
+  // 撕开效果
+  function tearOpen() {
+    const st = performance.now();
+    function anim(now) {
+      const p = Math.min((now-st)/TEAR_DURATION,1);
+      const e = p<0.5?4*p*p*p:1-Math.pow(-2*p+2,3)/2;
+      tearRect.setAttribute('x', (500*(1-e))/2);
+      tearRect.setAttribute('width', 500*(1-e));
+      if(p>0.1&&p<0.8) sheenOverlay.setAttribute('opacity', 0.4*Math.sin((p-0.1)/0.7*Math.PI));
+      else sheenOverlay.setAttribute('opacity','0');
+      if(p<1) requestAnimationFrame(anim);
+      else onTearDone();
+    }
+    requestAnimationFrame(anim);
+  }
+
+  // ============================================================
+  // 撕开完成 → 烟花表演秀 → 祝福卡
+  // ============================================================
+  function onTearDone() {
+    // 礼物盒淡出
+    giftBox.style.transition='opacity 0.6s ease';
+    giftBox.setAttribute('opacity','0');
+
+    // 画面渐暗
+    setTimeout(function() {
+      mainStage.style.transition = 'background 0.8s ease';
+      mainStage.style.background = 'radial-gradient(ellipse at center, #0a0a1a 0%, #050510 70%)';
+    }, 300);
+
+    // 启动星星阶段
+    setTimeout(function() {
+      createStars();
+    }, 800);
+  }
+
+  /** 从星星阶段过渡到拼字阶段 */
+  function startPuzzlePhase() {
+    // 星星进度淡出
+    starProgress.style.transition = 'opacity 0.4s ease';
+    starProgress.setAttribute('opacity', '0');
+
+    // 拼字淡入
+    setTimeout(function() {
+      createPuzzle();
+      puzzleHint.setAttribute('opacity', '1');
+    }, 500);
+  }
+
+  // ============================================================
+  // 阶段 C：庆祝收尾
+  // ============================================================
+  function startCelebration() {
+    // 恢复背景
+    mainStage.style.transition = 'background 0.8s ease';
+    mainStage.style.background = 'radial-gradient(ellipse at center, #1a1a3e 0%, #0a0a1a 70%)';
+
+    cornerIcons.classList.add('show');
+
+    // "你真棒！🫰" 祝贺文字
+    congratsText.style.transition = 'opacity 0.6s ease';
+    congratsText.setAttribute('opacity', '1');
+    setTimeout(function() {
+      congratsText.style.transition = 'opacity 0.8s ease';
+      congratsText.setAttribute('opacity', '0');
+    }, 3000);
+
+    // 烟花表演秀
+    var fwColors = ['#f6c343','#f0a6ca','#a29bfe','#fd79a8','#00cec9','#fdcb6e','#e17055','#55efc4','#74b9ff'];
+
+    setTimeout(function(){
+      fireOneFirework(120, 150, fwColors[0]);
+      fireOneFirework(380, 180, fwColors[1]);
+      fireOneFirework(250, 120, fwColors[2]);
+      launchConfetti(30);
+    }, 300);
+
+    setTimeout(function(){
+      fireOneFirework(80, 200, fwColors[3]);
+      fireOneFirework(420, 140, fwColors[4]);
+      fireOneFirework(200, 100, fwColors[5]);
+      fireOneFirework(320, 160, fwColors[6]);
+      launchConfetti(25);
+    }, 1200);
+
+    setTimeout(function(){
+      fireOneFirework(100, 130, fwColors[7]);
+      fireOneFirework(250, 90,  fwColors[8]);
+      fireOneFirework(400, 150, fwColors[0]);
+      fireOneFirework(170, 170, fwColors[2]);
+      fireOneFirework(330, 110, fwColors[4]);
+      launchConfetti(35);
+    }, 2200);
+
+    setTimeout(function(){
+      fireOneFirework(150, 160, fwColors[1]);
+      fireOneFirework(350, 130, fwColors[3]);
+      fireOneFirework(250, 180, fwColors[5]);
+      fireOneFirework(420, 100, fwColors[7]);
+      launchConfetti(20);
+    }, 3200);
+
+    setTimeout(function(){
+      fireOneFirework(200, 140, fwColors[6]);
+      fireOneFirework(300, 120, fwColors[8]);
+      fireOneFirework(250, 160, fwColors[0]);
+      launchConfetti(15);
+    }, 4200);
+
+    // 烟花层淡出
+    setTimeout(function(){
+      fireworksLayer.style.transition='opacity 1s ease';
+      fireworksLayer.setAttribute('opacity','0');
+      confettiLayer.style.transition='opacity 1s ease';
+      confettiLayer.setAttribute('opacity','0');
+    }, 5500);
+
+    // 祝福卡弹入
+    setTimeout(function(){
+      blessingCard.style.transition='opacity 0.8s ease';
+      blessingCard.setAttribute('opacity','1');
+      var st=performance.now();
+      function pop(now){
+        var t=Math.min((now-st)/900,1);
+        var e=t<0.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+        var os=t>0.7?Math.sin((t-0.7)/0.3*Math.PI*2)*0.06*(1-t):0;
+        blessingCard.setAttribute('transform','translate(250,500) scale('+(0.8+0.2*e+os)+')');
+        if(t<1) requestAnimationFrame(pop);
+        else blessingCard.setAttribute('transform','translate(250,500) scale(1)');
+      }
+      requestAnimationFrame(pop);
+    }, 6000);
+
+    // 卡片标题
+    setTimeout(function(){
+      cardTitle.style.transition='opacity 0.6s ease';
+      cardTitle.setAttribute('opacity','1');
+    }, 6600);
+
+    // 爱心
+    setTimeout(function(){
+      cardHeart.style.transition='opacity 0.6s ease';
+      cardHeart.setAttribute('opacity','1');
+    }, 6800);
+
+    // 名字
+    if(birthdayName){
+      setTimeout(function(){
+        cardName.textContent='Dear '+birthdayName;
+        cardName.style.transition='opacity 0.6s ease';
+        cardName.setAttribute('opacity','1');
+      }, 7000);
+    }
+
+    // 分隔线
+    setTimeout(function(){
+      cardDivider.style.transition='opacity 0.6s ease';
+      cardDivider.setAttribute('opacity','0.5');
+    }, 7100);
+
+    // 逐行祝福语
+    var blessings = [
+      "愿你每天都开开心心的",
+      "愿你所有的努力都不被辜负",
+      "愿你前路繁花，万事胜意",
+      "愿你眼里有光，心中有暖",
+      "愿你永远被这个世界温柔以待",
+    ];
+    blessings.forEach(function(text, i){
+      setTimeout(function(){
+        var t = svgEl('text', {
+          x:0, y:String(-35+i*36), 'text-anchor':'middle',
+          'font-family':"Georgia, '宋体', serif", 'font-size':'15',
+          fill:'#f5e6ca', opacity:'0'
+        });
+        t.textContent = text;
+        blessingsGroup.appendChild(t);
+        setTimeout(function(){
+          t.style.transition='opacity 0.6s ease';
+          t.setAttribute('opacity','1');
+        }, 50);
+      }, 7500+i*450);
+    });
+
+    // 光泽扫过
+    var blessEndTime = 7500 + blessings.length * 450 + 400;
+    setTimeout(function(){
+      var st=performance.now();
+      function shine(now){
+        var t=Math.min((now-st)/1200,1);
+        cardSheen.setAttribute('x', -190+t*460);
+        cardSheen.setAttribute('opacity', 0.25*Math.sin(t*Math.PI));
+        if(t<1) requestAnimationFrame(shine);
+      }
+      requestAnimationFrame(shine);
+    }, blessEndTime);
+
+    // 卡片淡出 → 快递提醒
+    setTimeout(function(){
+      fadeOut(blessingCard, 1200, function(){
+        showDeliveryScreen();
+      });
+    }, blessEndTime + 1400);
+  }
+
+  // ============================================================
+  // 最终画面：快递提醒
+  // ============================================================
+  function showDeliveryScreen() {
+    deliveryScreen.setAttribute('opacity','1');
+
+    // 逐行淡入
+    setTimeout(function(){
+      deliveryLine1.style.transition='opacity 0.8s ease';
+      deliveryLine1.setAttribute('opacity','1');
+    }, 400);
+
+    setTimeout(function(){
+      deliveryLine2.style.transition='opacity 0.8s ease';
+      deliveryLine2.setAttribute('opacity','1');
+    }, 1400);
+
+    setTimeout(function(){
+      deliveryLine3.style.transition='opacity 0.8s ease';
+      deliveryLine3.setAttribute('opacity','1');
+    }, 2400);
+
+    // 署名
+    setTimeout(function(){
+      deliverySign.style.transition='opacity 1s ease';
+      deliverySign.setAttribute('opacity','1');
+    }, 3200);
+  }
+
+})();
+</script>
+</body>
+</html>
