@@ -6,12 +6,7 @@
 <title>🎂 Happy Birthday！</title>
 <style>
 /* ============================================================
-   🎂 生日祝福网页
-   ============================================================
-   【用户可修改内容区 — 在文件底部 JS 中修改】
-   1. stories       - 故事句子数组
-   2. totalStories  - 标题中的数字（默认 20）
-   3. birthdayName  - 祝福对象的名字
+   🎂 生日祝福网页 - 华丽浪漫版
    ============================================================ */
 
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -22,94 +17,224 @@ html, body {
 }
 body { background: #0a0a1a; color: #f5e6ca; }
 
+/* ===== 音乐控制按钮 ===== */
+#music-btn {
+  position: fixed; top: 20px; left: 20px;
+  width: 50px; height: 50px;
+  border-radius: 50%;
+  border: 2px solid rgba(246, 195, 67, 0.5);
+  background: rgba(0, 0, 0, 0.5);
+  color: #f6c343;
+  font-size: 24px;
+  cursor: pointer;
+  z-index: 10001;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#music-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 20px rgba(246, 195, 67, 0.5);
+}
+#music-btn.playing {
+  animation: musicPulse 1s ease-in-out infinite;
+}
+@keyframes musicPulse {
+  0%, 100% { box-shadow: 0 0 10px rgba(246, 195, 67, 0.3); }
+  50% { box-shadow: 0 0 25px rgba(246, 195, 67, 0.6); }
+}
+
 /* ===== 密码保护界面 ===== */
 #password-screen {
   position: fixed; top: 0; left: 0; right: 0; bottom: 0;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
   z-index: 10000;
-  transition: opacity 0.8s ease, visibility 0.8s ease;
+  transition: opacity 1s ease, visibility 1s ease;
+  overflow: hidden;
 }
 #password-screen.hidden {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
 }
+
+/* 密码界面浮动爱心 */
+.floating-hearts {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+}
+.heart {
+  position: absolute;
+  bottom: -50px;
+  font-size: 20px;
+  animation: floatHeart linear infinite;
+  opacity: 0.6;
+}
+@keyframes floatHeart {
+  0% {
+    transform: translateY(0) rotate(0deg) scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(-110vh) rotate(720deg) scale(0.5);
+    opacity: 0;
+  }
+}
+
+/* 密码界面闪烁星星 */
+.password-stars {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.p-star {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: #fff;
+  border-radius: 50%;
+  animation: pStarTwinkle 2s ease-in-out infinite;
+}
+@keyframes pStarTwinkle {
+  0%, 100% { opacity: 0.2; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
 .password-box {
   text-align: center;
-  padding: 40px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 20px;
+  padding: 50px 40px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 25px;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(15px);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4),
+              0 0 60px rgba(246, 195, 67, 0.1);
+  position: relative;
+  z-index: 2;
+  animation: boxGlow 3s ease-in-out infinite;
 }
+@keyframes boxGlow {
+  0%, 100% { box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), 0 0 60px rgba(246, 195, 67, 0.1); }
+  50% { box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), 0 0 80px rgba(246, 195, 67, 0.2); }
+}
+
 .password-icon {
-  font-size: 60px;
-  margin-bottom: 20px;
-  animation: pulse 2s ease-in-out infinite;
+  font-size: 70px;
+  margin-bottom: 25px;
+  animation: iconFloat 3s ease-in-out infinite;
+  filter: drop-shadow(0 0 20px rgba(246, 195, 67, 0.5));
 }
-@keyframes pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
+@keyframes iconFloat {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-10px) scale(1.05); }
 }
+
 .password-title {
-  font-size: 24px;
+  font-size: 28px;
   color: #f6c343;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   font-weight: bold;
+  text-shadow: 0 0 20px rgba(246, 195, 67, 0.5);
+  letter-spacing: 2px;
 }
 .password-subtitle {
-  font-size: 14px;
-  color: #a0a0a0;
-  margin-bottom: 30px;
+  font-size: 15px;
+  color: rgba(245, 230, 202, 0.6);
+  margin-bottom: 35px;
+  letter-spacing: 1px;
 }
 .password-input {
-  width: 250px;
-  padding: 15px 20px;
-  font-size: 18px;
+  width: 280px;
+  padding: 18px 25px;
+  font-size: 20px;
   text-align: center;
   border: 2px solid rgba(246, 195, 67, 0.3);
-  border-radius: 10px;
-  background: rgba(0, 0, 0, 0.3);
+  border-radius: 15px;
+  background: rgba(0, 0, 0, 0.4);
   color: #f5e6ca;
   outline: none;
-  transition: all 0.3s ease;
-  letter-spacing: 5px;
+  transition: all 0.4s ease;
+  letter-spacing: 8px;
 }
 .password-input:focus {
   border-color: #f6c343;
-  box-shadow: 0 0 20px rgba(246, 195, 67, 0.3);
+  box-shadow: 0 0 30px rgba(246, 195, 67, 0.3),
+              inset 0 0 20px rgba(246, 195, 67, 0.1);
 }
 .password-input::placeholder {
   color: rgba(255, 255, 255, 0.3);
-  letter-spacing: 3px;
+  letter-spacing: 4px;
 }
 .password-btn {
-  margin-top: 20px;
-  padding: 12px 40px;
-  font-size: 16px;
+  margin-top: 25px;
+  padding: 15px 50px;
+  font-size: 18px;
   color: #1a1a2e;
-  background: linear-gradient(135deg, #f6c343, #f0a6ca);
+  background: linear-gradient(135deg, #f6c343, #f0a6ca, #f6c343);
+  background-size: 200% 200%;
   border: none;
-  border-radius: 25px;
+  border-radius: 30px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.4s ease;
   font-weight: bold;
+  letter-spacing: 2px;
+  animation: btnShine 3s ease-in-out infinite;
+}
+@keyframes btnShine {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
 }
 .password-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 20px rgba(246, 195, 67, 0.4);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 8px 30px rgba(246, 195, 67, 0.5);
+}
+.password-btn:active {
+  transform: translateY(-1px) scale(0.98);
 }
 .password-error {
-  margin-top: 15px;
+  margin-top: 18px;
   color: #ff6b6b;
   font-size: 14px;
   opacity: 0;
   transition: opacity 0.3s ease;
+  text-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
 }
 .password-error.show {
   opacity: 1;
+  animation: errorShake 0.5s ease;
+}
+@keyframes errorShake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-5px); }
+  40%, 80% { transform: translateX(5px); }
+}
+
+/* 解锁特效容器 */
+.unlock-particles {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10001;
+}
+.unlock-particle {
+  position: absolute;
+  border-radius: 50%;
+  animation: unlockBurst 1s ease-out forwards;
+}
+@keyframes unlockBurst {
+  0% { transform: scale(0); opacity: 1; }
+  100% { transform: scale(3); opacity: 0; }
 }
 
 /* ===== 故事阶段 ===== */
@@ -136,48 +261,80 @@ body { background: #0a0a1a; color: #f5e6ca; }
 }
 .meteor::after {
   content: ''; position: absolute; top: 0; left: 0;
-  width: 50px; height: 1px;
-  background: linear-gradient(to left, rgba(255,255,255,0.7), transparent);
+  width: 60px; height: 1.5px;
+  background: linear-gradient(to left, rgba(255,255,255,0.8), transparent);
   transform-origin: left center; transform: rotate(215deg);
 }
 @keyframes meteor {
   0% { opacity: 0; transform: translate(0,0); }
   5% { opacity: 1; } 70% { opacity: 1; }
-  100% { opacity: 0; transform: translate(-250px,250px); }
+  100% { opacity: 0; transform: translate(-300px,300px); }
 }
 
 #story-title {
-  font-size: clamp(1.4rem, 5vw, 2.2rem);
-  color: #f6c343; text-shadow: 0 0 24px rgba(246,195,67,0.5);
-  margin-bottom: 8px; letter-spacing: 3px; position: relative; z-index: 2;
+  font-size: clamp(1.6rem, 6vw, 2.5rem);
+  color: #f6c343;
+  text-shadow: 0 0 30px rgba(246,195,67,0.6),
+               0 0 60px rgba(246,195,67,0.3);
+  margin-bottom: 10px; letter-spacing: 5px; position: relative; z-index: 2;
+  animation: titleGlow 2s ease-in-out infinite;
+}
+@keyframes titleGlow {
+  0%, 100% { text-shadow: 0 0 30px rgba(246,195,67,0.6), 0 0 60px rgba(246,195,67,0.3); }
+  50% { text-shadow: 0 0 40px rgba(246,195,67,0.8), 0 0 80px rgba(246,195,67,0.4); }
 }
 #story-subtitle {
-  font-size: clamp(0.75rem, 2.5vw, 1rem);
-  color: rgba(245,230,202,0.5); letter-spacing: 2px;
-  margin-bottom: 36px; position: relative; z-index: 2;
+  font-size: clamp(0.8rem, 2.8vw, 1.1rem);
+  color: rgba(245,230,202,0.6); letter-spacing: 3px;
+  margin-bottom: 40px; position: relative; z-index: 2;
 }
 #story-text-area {
-  position: relative; width: 100%; max-width: 600px; min-height: 120px;
+  position: relative; width: 100%; max-width: 650px; min-height: 140px;
   display: flex; align-items: center; justify-content: center;
   text-align: center; z-index: 2;
 }
 .story-line {
   position: absolute; width: 100%;
-  font-size: clamp(0.95rem, 3.2vw, 1.2rem);
-  line-height: 1.8; color: #f5e6ca; opacity: 0;
-  transform: translateY(12px);
-  transition: opacity 0.5s ease, transform 0.5s ease; padding: 0 16px;
+  font-size: clamp(1rem, 3.5vw, 1.3rem);
+  line-height: 2; color: #f5e6ca; opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease; padding: 0 20px;
+  text-shadow: 0 0 10px rgba(245, 230, 202, 0.3);
 }
 .story-line.active { opacity: 1; transform: translateY(0); }
-.story-line.exit { opacity: 0; transform: translateY(-12px); }
+.story-line.exit { opacity: 0; transform: translateY(-20px); }
+
+/* 进度条 */
+.progress-container {
+  margin-top: 50px;
+  width: 200px;
+  height: 4px;
+  background: rgba(245, 230, 202, 0.2);
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+  z-index: 2;
+}
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #f6c343, #f0a6ca);
+  border-radius: 2px;
+  transition: width 0.5s ease;
+  box-shadow: 0 0 10px rgba(246, 195, 67, 0.5);
+}
 #story-progress {
-  margin-top: 40px; font-size: clamp(0.8rem, 2.5vw, 1rem);
+  margin-top: 15px; font-size: clamp(0.75rem, 2.2vw, 0.9rem);
   color: rgba(245,230,202,0.5); letter-spacing: 1px; position: relative; z-index: 2;
 }
 #skip-hint {
   position: absolute; bottom: 70px; left: 50%; transform: translateX(-50%);
-  font-size: 0.8rem; color: rgba(245,230,202,0.3); z-index: 2;
+  font-size: 0.85rem; color: rgba(245,230,202,0.4); z-index: 2;
   pointer-events: none; opacity: 0; transition: opacity 1s ease;
+  animation: skipBounce 2s ease-in-out infinite;
+}
+@keyframes skipBounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(-5px); }
 }
 
 /* ===== 主场景 ===== */
@@ -195,9 +352,19 @@ body { background: #0a0a1a; color: #f5e6ca; }
   position: fixed; top: 16px; right: 16px;
   font-size: 1.6rem; z-index: 100; opacity: 0;
   transition: opacity 0.8s ease; user-select: none;
-  display: flex; gap: 4px;
+  display: flex; gap: 8px;
 }
 #corner-icons.show { opacity: 1; }
+#corner-icons span {
+  animation: iconBounce 2s ease-in-out infinite;
+}
+#corner-icons span:nth-child(2) {
+  animation-delay: 0.3s;
+}
+@keyframes iconBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
 
 @keyframes glowBreathe {
   0%, 100% { filter: url(#glow-soft); }
@@ -207,82 +374,163 @@ body { background: #0a0a1a; color: #f5e6ca; }
 /* HTML 星星按钮 */
 .star-btn {
   position: absolute;
-  width: 60px; height: 60px;
+  width: 65px; height: 65px;
   border-radius: 50%;
-  border: 2px solid #555;
+  border: 2px solid rgba(246, 195, 67, 0.3);
   background: rgba(26,26,62,0.8);
-  color: #555;
-  font-size: 28px;
-  line-height: 56px;
+  color: rgba(246, 195, 67, 0.5);
+  font-size: 30px;
+  line-height: 61px;
   text-align: center;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.4s ease;
   transform: translate(-50%, -50%);
   user-select: none;
   -webkit-tap-highlight-color: transparent;
 }
-.star-btn:active { transform: translate(-50%, -50%) scale(0.95); }
+.star-btn:active { transform: translate(-50%, -50%) scale(0.9); }
 .star-btn.lit {
   border-color: #f6c343;
   color: #f6c343;
   background: rgba(42,26,0,0.9);
-  box-shadow: 0 0 20px rgba(246,195,67,0.6), 0 0 40px rgba(246,195,67,0.3);
+  box-shadow: 0 0 25px rgba(246,195,67,0.7),
+              0 0 50px rgba(246,195,67,0.4),
+              inset 0 0 20px rgba(246,195,67,0.2);
   cursor: default;
   pointer-events: none;
+  animation: starGlow 1.5s ease-in-out infinite;
+}
+@keyframes starGlow {
+  0%, 100% { box-shadow: 0 0 25px rgba(246,195,67,0.7), 0 0 50px rgba(246,195,67,0.4); }
+  50% { box-shadow: 0 0 35px rgba(246,195,67,0.9), 0 0 70px rgba(246,195,67,0.5); }
 }
 
 /* 拼字槽位 */
 .puzzle-slot {
   position: absolute;
-  width: 60px; height: 60px;
+  width: 65px; height: 65px;
   border: 2px dashed rgba(246,195,67,0.4);
-  border-radius: 8px;
+  border-radius: 10px;
   transform: translate(-50%, -50%);
   pointer-events: none;
+  animation: slotPulse 2s ease-in-out infinite;
+}
+@keyframes slotPulse {
+  0%, 100% { border-color: rgba(246,195,67,0.4); }
+  50% { border-color: rgba(246,195,67,0.7); }
 }
 .puzzle-slot-num {
   position: absolute;
-  width: 60px; text-align: center;
-  color: rgba(246,195,67,0.3);
-  font-size: 14px;
+  width: 65px; text-align: center;
+  color: rgba(246,195,67,0.4);
+  font-size: 15px;
   transform: translate(-50%, -50%);
   pointer-events: none;
 }
 /* 拼字方块 */
 .puzzle-char {
   position: absolute;
-  width: 56px; height: 56px;
-  border: 1.5px solid #f6c343;
-  border-radius: 8px;
-  background: #1a1a3e;
+  width: 60px; height: 60px;
+  border: 2px solid #f6c343;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #1a1a3e, #2a2a5e);
   color: #f5e6ca;
-  font-size: 30px;
-  line-height: 52px;
+  font-size: 32px;
+  line-height: 56px;
   text-align: center;
   cursor: grab;
   transform: translate(-50%, -50%);
   user-select: none;
   -webkit-tap-highlight-color: transparent;
   z-index: 2;
-  transition: box-shadow 0.2s ease;
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
-.puzzle-char:active { cursor: grabbing; }
+.puzzle-char:active { cursor: grabbing; transform: translate(-50%, -50%) scale(1.05); }
 .puzzle-char.locked {
   cursor: default;
   border-color: #f6c343;
-  box-shadow: 0 0 15px rgba(246,195,67,0.5);
+  box-shadow: 0 0 20px rgba(246,195,67,0.6),
+              0 0 40px rgba(246,195,67,0.3);
   pointer-events: none;
+}
+
+/* 飘落花瓣 */
+.falling-petals {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1000;
+  overflow: hidden;
+}
+.petal {
+  position: absolute;
+  top: -30px;
+  font-size: 20px;
+  animation: fallPetal linear infinite;
+  opacity: 0.7;
+}
+@keyframes fallPetal {
+  0% {
+    transform: translateY(0) rotate(0deg) translateX(0);
+    opacity: 0.7;
+  }
+  25% {
+    transform: translateY(25vh) rotate(90deg) translateX(30px);
+  }
+  50% {
+    transform: translateY(50vh) rotate(180deg) translateX(-20px);
+    opacity: 0.5;
+  }
+  75% {
+    transform: translateY(75vh) rotate(270deg) translateX(25px);
+  }
+  100% {
+    transform: translateY(110vh) rotate(360deg) translateX(-15px);
+    opacity: 0;
+  }
+}
+
+/* 打字机光标 */
+.typewriter-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  background: #f6c343;
+  margin-left: 3px;
+  animation: cursorBlink 0.8s ease-in-out infinite;
+  vertical-align: middle;
+}
+@keyframes cursorBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
 }
 </style>
 </head>
 <body>
 
+<!-- 音乐控制按钮 -->
+<button id="music-btn" title="播放/暂停音乐">🔇</button>
+
+<!-- 飘落花瓣容器 -->
+<div class="falling-petals" id="falling-petals"></div>
+
 <!-- ===== 密码保护界面 ===== -->
 <div id="password-screen">
+  <!-- 浮动爱心 -->
+  <div class="floating-hearts" id="floating-hearts"></div>
+  <!-- 闪烁星星 -->
+  <div class="password-stars" id="password-stars"></div>
+  <!-- 解锁粒子容器 -->
+  <div class="unlock-particles" id="unlock-particles"></div>
+
   <div class="password-box">
-    <div class="password-icon">🔒</div>
+    <div class="password-icon">💝</div>
     <div class="password-title">需要密码才能查看</div>
-    <div class="password-subtitle">请输入密码来解锁这份祝福</div>
+    <div class="password-subtitle">请输入密码来解锁这份专属祝福</div>
     <input type="password" id="password-input" class="password-input" placeholder="请输入密码" maxlength="20">
     <br>
     <button id="password-btn" class="password-btn">解锁 ✨</button>
@@ -295,6 +543,9 @@ body { background: #0a0a1a; color: #f5e6ca; }
   <div id="story-title"></div>
   <div id="story-subtitle"></div>
   <div id="story-text-area"></div>
+  <div class="progress-container">
+    <div class="progress-bar" id="progress-bar"></div>
+  </div>
   <div id="story-progress"></div>
   <div id="skip-hint">👆 点击屏幕跳过</div>
 </div>
@@ -439,34 +690,213 @@ body { background: #0a0a1a; color: #f5e6ca; }
 
 <script>
 // ============================================================
-// 【用户可修改内容区】
+// 🎂 生日祝福网页 - 华丽浪漫版
 // ============================================================
+
+// 【用户可修改内容区】
 const stories = [
-  { text: "以前我们天天分享日常，比上班还勤快。", dur: 3000 },
-  { text: "有一次从网吧出来遇上大暴雨，在街边饭馆躲雨——而你化身线上饭搭子，陪我一起吃。", dur: 4500 },
-  { text: "作业不会的时候，第一个想到的就是你。", dur: 3000 },
-  { text: "偶尔还蹭用你的工具箱，嘿嘿😜", dur: 3000 },
-  { text: "记得那次下雨你来给我送过伞，我却连伞都不会折，怪不好意思的，哈哈哈哈。", dur: 4000 },
-  { text: "说好了到龙南你请我喝杨村米酒，不许赖账！", dur: 3000 },
-  { text: "\"嘿嘿一言为定！🐕截图为证\"——我可是有证据的。", dur: 3500 },
-  { text: "晚安晚安晚安——说了好多遍，每一遍都是认真的。", dur: 3500 },
-  { text: "今天是你的生日，想跟你说——", dur: 3000 },
-  { text: "生日快乐呀，真的希望你一切都好。", dur: 3500 },
-  { text: "接下来送上我的祝福呀😄", dur: 3000 },
+  { text: "以前我们天天分享日常，比上班还勤快。", dur: 3500 },
+  { text: "有一次从网吧出来遇上大暴雨，在街边饭馆躲雨——而你化身线上饭搭子，陪我一起吃。", dur: 5000 },
+  { text: "作业不会的时候，第一个想到的就是你。", dur: 3500 },
+  { text: "偶尔还蹭用你的工具箱，嘿嘿😜", dur: 3500 },
+  { text: "记得那次下雨你来给我送过伞，我却连伞都不会折，怪不好意思的，哈哈哈哈。", dur: 4500 },
+  { text: "说好了到龙南你请我喝杨村米酒，不许赖账！", dur: 3500 },
+  { text: "\"嘿嘿一言为定！🐕截图为证\"——我可是有证据的。", dur: 4000 },
+  { text: "晚安晚安晚安——说了好多遍，每一遍都是认真的。", dur: 4000 },
+  { text: "今天是你的生日，想跟你说——", dur: 3500 },
+  { text: "生日快乐呀，真的希望你一切都好。", dur: 4000 },
+  { text: "接下来送上我的祝福呀😄", dur: 3500 },
 ];
 const totalStories = 12;
 const birthdayName = "LSQ";
 
-// ============================================================
 // 密码保护配置
-// ============================================================
-const PASSWORD = "20260626";  // ⚠️ 在这里修改密码！
+const PASSWORD = "20260626";
 
 // ============================================================
 // 实现代码
 // ============================================================
 (function () {
   'use strict';
+
+  // ============================================================
+  // 音乐系统
+  // ============================================================
+  let audioCtx = null;
+  let isMusicPlaying = false;
+  let musicTimeout = null;
+  const musicBtn = document.getElementById('music-btn');
+
+  // 浪漫钢琴旋律 (简化的音符序列)
+  const melody = [
+    { note: 262, dur: 0.4 }, // C4
+    { note: 330, dur: 0.4 }, // E4
+    { note: 392, dur: 0.4 }, // G4
+    { note: 523, dur: 0.8 }, // C5
+    { note: 392, dur: 0.4 }, // G4
+    { note: 330, dur: 0.4 }, // E4
+    { note: 294, dur: 0.6 }, // D4
+    { note: 262, dur: 0.6 }, // C4
+    { note: 330, dur: 0.4 }, // E4
+    { note: 392, dur: 0.4 }, // G4
+    { note: 440, dur: 0.6 }, // A4
+    { note: 392, dur: 0.4 }, // G4
+    { note: 330, dur: 0.4 }, // E4
+    { note: 262, dur: 0.8 }, // C4
+    { note: 294, dur: 0.4 }, // D4
+    { note: 330, dur: 0.4 }, // E4
+    { note: 392, dur: 0.4 }, // G4
+    { note: 330, dur: 0.4 }, // E4
+    { note: 294, dur: 0.6 }, // D4
+    { note: 262, dur: 0.8 }, // C4
+  ];
+
+  function initAudio() {
+    if (audioCtx) return;
+    try {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    } catch (e) { /* 静默失败 */ }
+  }
+
+  function playNote(freq, duration, startTime, volume = 0.15) {
+    if (!audioCtx) return;
+    try {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(volume, startTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(startTime);
+      osc.stop(startTime + duration);
+    } catch (e) { /* 静默失败 */ }
+  }
+
+  function playMelody() {
+    if (!audioCtx || !isMusicPlaying) return;
+    let time = audioCtx.currentTime + 0.1;
+    melody.forEach(note => {
+      playNote(note.note, note.dur, time, 0.12);
+      // 同时播放和弦
+      playNote(note.note * 0.5, note.dur, time, 0.06);
+      time += note.dur;
+    });
+    // 循环播放
+    const totalDuration = melody.reduce((sum, n) => sum + n.dur, 0);
+    musicTimeout = setTimeout(playMelody, totalDuration * 1000);
+  }
+
+  function toggleMusic() {
+    initAudio();
+    if (isMusicPlaying) {
+      isMusicPlaying = false;
+      if (musicTimeout) clearTimeout(musicTimeout);
+      musicBtn.textContent = '🔇';
+      musicBtn.classList.remove('playing');
+    } else {
+      isMusicPlaying = true;
+      musicBtn.textContent = '🎵';
+      musicBtn.classList.add('playing');
+      playMelody();
+    }
+  }
+
+  musicBtn.addEventListener('click', toggleMusic);
+
+  // 密码验证音效
+  function playDingSound() {
+    initAudio();
+    if (!audioCtx) return;
+    const now = audioCtx.currentTime;
+    playNote(800, 0.15, now, 0.3);
+    playNote(1000, 0.15, now + 0.1, 0.2);
+    playNote(1200, 0.2, now + 0.2, 0.25);
+  }
+
+  // 错误音效
+  function playErrorSound() {
+    initAudio();
+    if (!audioCtx) return;
+    playNote(200, 0.2, audioCtx.currentTime, 0.3);
+    playNote(150, 0.3, audioCtx.currentTime + 0.1, 0.2);
+  }
+
+  // ============================================================
+  // 密码界面动画
+  // ============================================================
+
+  // 创建浮动爱心
+  function createFloatingHearts() {
+    const container = document.getElementById('floating-hearts');
+    const hearts = ['💖', '💕', '💗', '💘', '💝', '❤️', '🧡', '💛'];
+    for (let i = 0; i < 15; i++) {
+      const heart = document.createElement('div');
+      heart.className = 'heart';
+      heart.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+      heart.style.left = Math.random() * 100 + '%';
+      heart.style.fontSize = (15 + Math.random() * 20) + 'px';
+      heart.style.animationDuration = (8 + Math.random() * 12) + 's';
+      heart.style.animationDelay = Math.random() * 10 + 's';
+      container.appendChild(heart);
+    }
+  }
+
+  // 创建闪烁星星
+  function createPasswordStars() {
+    const container = document.getElementById('password-stars');
+    for (let i = 0; i < 50; i++) {
+      const star = document.createElement('div');
+      star.className = 'p-star';
+      star.style.left = Math.random() * 100 + '%';
+      star.style.top = Math.random() * 100 + '%';
+      star.style.animationDelay = Math.random() * 3 + 's';
+      star.style.animationDuration = (1.5 + Math.random() * 2) + 's';
+      container.appendChild(star);
+    }
+  }
+
+  // 解锁粒子爆炸
+  function createUnlockParticles() {
+    const container = document.getElementById('unlock-particles');
+    const colors = ['#f6c343', '#f0a6ca', '#a29bfe', '#fd79a8', '#55efc4'];
+    const centerX = window.innerWidth / 2;
+    const centerY = window.innerHeight / 2;
+
+    for (let i = 0; i < 30; i++) {
+      const particle = document.createElement('div');
+      particle.className = 'unlock-particle';
+      const size = 8 + Math.random() * 12;
+      particle.style.width = size + 'px';
+      particle.style.height = size + 'px';
+      particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+      particle.style.left = centerX + 'px';
+      particle.style.top = centerY + 'px';
+      particle.style.animationDuration = (0.8 + Math.random() * 0.5) + 's';
+
+      // 随机方向
+      const angle = (Math.PI * 2 * i) / 30;
+      const distance = 100 + Math.random() * 150;
+      particle.style.setProperty('--tx', Math.cos(angle) * distance + 'px');
+      particle.style.setProperty('--ty', Math.sin(angle) * distance + 'px');
+
+      container.appendChild(particle);
+
+      // 动画
+      particle.animate([
+        { transform: 'translate(0, 0) scale(0)', opacity: 1 },
+        { transform: `translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance}px) scale(1)`, opacity: 0 }
+      ], {
+        duration: 800 + Math.random() * 400,
+        easing: 'ease-out'
+      }).onfinish = () => particle.remove();
+    }
+  }
+
+  // 初始化密码界面
+  createFloatingHearts();
+  createPasswordStars();
 
   // ============================================================
   // 密码验证
@@ -479,12 +909,20 @@ const PASSWORD = "20260626";  // ⚠️ 在这里修改密码！
   function checkPassword() {
     const input = passwordInput.value.trim();
     if (input === PASSWORD) {
-      passwordScreen.classList.add('hidden');
-      // 密码正确后才开始播放故事
+      // 密码正确 - 播放成功音效
+      playDingSound();
+      createUnlockParticles();
+
+      // 延迟隐藏
       setTimeout(() => {
-        startStory();
-      }, 800);
+        passwordScreen.classList.add('hidden');
+        setTimeout(() => {
+          startStory();
+        }, 800);
+      }, 500);
     } else {
+      // 密码错误
+      playErrorSound();
       passwordError.classList.add('show');
       passwordInput.value = '';
       passwordInput.focus();
@@ -524,6 +962,7 @@ const PASSWORD = "20260626";  // ⚠️ 在这里修改密码！
   const storySubtitle  = document.getElementById('story-subtitle');
   const storyTextArea  = document.getElementById('story-text-area');
   const storyProgress  = document.getElementById('story-progress');
+  const progressBar    = document.getElementById('progress-bar');
   const skipHint       = document.getElementById('skip-hint');
   const mainStage      = document.getElementById('main-stage');
   const step1Title     = document.getElementById('step1-title');
@@ -569,18 +1008,18 @@ const PASSWORD = "20260626";  // ⚠️ 在这里修改密码！
   // 星空
   // ============================================================
   (function () {
-    for (let i = 0; i < 60; i++) {
+    for (let i = 0; i < 80; i++) {
       const s = document.createElement('div');
       s.className = 'star';
       s.style.left = Math.random()*100+'%';
       s.style.top = Math.random()*100+'%';
-      const sz = 1+Math.random()*2;
+      const sz = 1+Math.random()*3;
       s.style.width = sz+'px'; s.style.height = sz+'px';
       s.style.setProperty('--dur', (1.5+Math.random()*3)+'s');
       s.style.animationDelay = Math.random()*3+'s';
       storyStage.appendChild(s);
     }
-    for (let i = 0; i < 2; i++) {
+    for (let i = 0; i < 3; i++) {
       const m = document.createElement('div');
       m.className = 'meteor';
       m.style.right = Math.random()*50+'%';
@@ -592,20 +1031,16 @@ const PASSWORD = "20260626";  // ⚠️ 在这里修改密码！
   })();
 
   // ============================================================
-  // 故事放映
+  // 故事放映 - 打字机效果
   // ============================================================
+  let typewriterTimer = null;
+
   function initStory() {
     // 清空之前的故事
     storyTextArea.innerHTML = '';
 
     storyTitle.textContent = 'Happy Birthday！';
     storySubtitle.textContent = '我们之间的回忆';
-    stories.forEach(function (item, i) {
-      const el = document.createElement('div');
-      el.className = 'story-line';
-      el.textContent = item.text;
-      storyTextArea.appendChild(el);
-    });
 
     // 开始播放故事
     setTimeout(function() {
@@ -614,11 +1049,45 @@ const PASSWORD = "20260626";  // ⚠️ 在这里修改密码！
   }
 
   function updateProgress() {
+    const progress = ((currentStory + 1) / stories.length) * 100;
+    progressBar.style.width = progress + '%';
     storyProgress.textContent = (currentStory+1)+' / '+stories.length;
+  }
+
+  // 打字机效果
+  function typewriterEffect(element, text, callback) {
+    let index = 0;
+    element.textContent = '';
+    element.style.opacity = '1';
+    element.style.transform = 'translateY(0)';
+
+    // 添加光标
+    const cursor = document.createElement('span');
+    cursor.className = 'typewriter-cursor';
+    element.appendChild(cursor);
+
+    function type() {
+      if (index < text.length) {
+        // 在光标前插入字符
+        element.insertBefore(document.createTextNode(text[index]), cursor);
+        index++;
+        typewriterTimer = setTimeout(type, 50 + Math.random() * 30);
+      } else {
+        // 打字完成，移除光标
+        setTimeout(() => {
+          if (cursor.parentNode) cursor.remove();
+          if (callback) callback();
+        }, 500);
+      }
+    }
+    type();
   }
 
   function playNextStory() {
     if (storyTimer) { clearTimeout(storyTimer); storyTimer = null; }
+    if (typewriterTimer) { clearTimeout(typewriterTimer); typewriterTimer = null; }
+
+    // 清除之前的故事
     const lines = storyTextArea.querySelectorAll('.story-line');
     lines.forEach(function (l) {
       if (l.classList.contains('active')) {
@@ -626,10 +1095,20 @@ const PASSWORD = "20260626";  // ⚠️ 在这里修改密码！
         setTimeout(function(){ l.classList.remove('exit'); }, STORY_FADE);
       }
     });
+
     if (currentStory >= stories.length) { onStoriesComplete(); return; }
     updateProgress();
-    const a = lines[currentStory];
-    if (a) setTimeout(function(){ a.classList.add('active'); }, 60);
+
+    // 创建新的故事行
+    const newLine = document.createElement('div');
+    newLine.className = 'story-line';
+    storyTextArea.appendChild(newLine);
+
+    // 使用打字机效果
+    typewriterEffect(newLine, stories[currentStory].text, function() {
+      // 打字完成后的回调
+    });
+
     currentStory++;
     var dur = stories[currentStory - 1] ? stories[currentStory - 1].dur : STORY_INTERVAL;
     storyTimer = setTimeout(playNextStory, dur);
@@ -638,7 +1117,9 @@ const PASSWORD = "20260626";  // ⚠️ 在这里修改密码！
   function onStoriesComplete() {
     storiesDone = true;
     if (storyTimer) { clearTimeout(storyTimer); storyTimer = null; }
+    if (typewriterTimer) { clearTimeout(typewriterTimer); typewriterTimer = null; }
     storyProgress.textContent = stories.length+' / '+stories.length;
+    progressBar.style.width = '100%';
     setTimeout(function(){
       storyStage.classList.add('fade-out');
       setTimeout(function(){
@@ -652,7 +1133,7 @@ const PASSWORD = "20260626";  // ⚠️ 在这里修改密码！
   setTimeout(function(){ skipHint.style.opacity='1'; }, 3000);
   setTimeout(function(){ skipHint.style.opacity='0'; }, 8000);
   document.addEventListener('click', function () {
-    initAudio(); // 浏览器要求用户交互后才能播放音频
+    initAudio();
     if (storiesDone) return;
     playNextStory();
     skipHint.style.opacity = '0';
@@ -661,16 +1142,6 @@ const PASSWORD = "20260626";  // ⚠️ 在这里修改密码！
   // ============================================================
   // 音效系统（Web Audio API）
   // ============================================================
-  var audioCtx = null;
-
-  /** 初始化 AudioContext（需在用户交互后调用） */
-  function initAudio() {
-    if (audioCtx) return;
-    try {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    } catch (e) { /* 静默失败 */ }
-  }
-
   /** 播放简单音效 */
   function playTone(freq, duration, vol) {
     if (!audioCtx) return;
@@ -799,6 +1270,22 @@ const PASSWORD = "20260626";  // ⚠️ 在这里修改密码！
     }
   }
 
+  // 飘落花瓣
+  function startFallingPetals() {
+    const container = document.getElementById('falling-petals');
+    const petals = ['🌸', '🌺', '💮', '🏵️', '✿', '❀'];
+    for (let i = 0; i < 20; i++) {
+      const petal = document.createElement('div');
+      petal.className = 'petal';
+      petal.textContent = petals[Math.floor(Math.random() * petals.length)];
+      petal.style.left = Math.random() * 100 + '%';
+      petal.style.fontSize = (12 + Math.random() * 15) + 'px';
+      petal.style.animationDuration = (8 + Math.random() * 12) + 's';
+      petal.style.animationDelay = Math.random() * 10 + 's';
+      container.appendChild(petal);
+    }
+  }
+
   // ============================================================
   // 阶段 A：点亮星星（HTML 按钮覆盖层，最可靠的点击方式）
   // ============================================================
@@ -909,7 +1396,7 @@ const PASSWORD = "20260626";  // ⚠️ 在这里修改密码！
     draggingIdx = null;
 
     // 4 个槽位（上方居中）
-    var slotSize = 60;
+    var slotSize = 65;
     var slotGap = 20;
     var totalW = PUZZLE_CHARS.length * slotSize + (PUZZLE_CHARS.length - 1) * slotGap;
     var startSvgX = (VW - totalW) / 2;
@@ -1042,7 +1529,7 @@ const PASSWORD = "20260626";  // ⚠️ 在这里修改密码！
           s.filled = true;
           lockedCount++;
           // 吸附到槽位
-          b.el.style.transition = 'all 0.2s ease';
+          b.el.style.transition = 'all 0.3s ease';
           b.el.style.left = s.el.style.left;
           b.el.style.top = s.el.style.top;
           b.el.classList.add('locked');
@@ -1075,8 +1562,8 @@ const PASSWORD = "20260626";  // ⚠️ 在这里修改密码！
     // 所有字块发光放大
     puzzleBlocks.forEach(function(b) {
       b.el.style.transition = 'all 0.4s ease';
-      b.el.style.boxShadow = '0 0 25px rgba(246,195,67,0.8)';
-      b.el.style.transform = 'translate(-50%, -50%) scale(1.2)';
+      b.el.style.boxShadow = '0 0 30px rgba(246,195,67,0.9), 0 0 60px rgba(246,195,67,0.5)';
+      b.el.style.transform = 'translate(-50%, -50%) scale(1.3)';
     });
     setTimeout(function() {
       puzzleOverlay.style.transition = 'opacity 0.5s ease';
@@ -1104,11 +1591,11 @@ const PASSWORD = "20260626";  // ⚠️ 在这里修改密码！
   }
 
   function swingBox(el, cx, cy, cb) {
-    const angles = [-5,5,-5,0]; let idx=0;
+    const angles = [-8,8,-6,4,-2,0]; let idx=0;
     (function next(){
       if(idx>=angles.length){if(cb)cb();return;}
       el.setAttribute('transform','translate('+cx+','+cy+') rotate('+angles[idx]+',0,0)');
-      idx++; setTimeout(next,200);
+      idx++; setTimeout(next,180);
     })();
   }
 
@@ -1131,7 +1618,7 @@ const PASSWORD = "20260626";  // ⚠️ 在这里修改密码！
 
     // 步骤1：标题文字
     setTimeout(function(){
-      fadeIn(step1Title, 500, function(){
+      fadeIn(step1Title, 600, function(){
         step1Title.style.animation = 'glowBreathe 1.5s ease-in-out infinite';
       });
     }, 300);
@@ -1139,11 +1626,11 @@ const PASSWORD = "20260626";  // ⚠️ 在这里修改密码！
     // 2.5s：标题缩小淡出
     setTimeout(function(){
       step1Title.style.animation='';
-      step1Title.style.transition='opacity 0.5s ease, transform 0.5s ease';
+      step1Title.style.transition='opacity 0.6s ease, transform 0.6s ease';
       step1Title.setAttribute('opacity','0');
       const st=performance.now();
       function shrink(now){
-        const t=Math.min((now-st)/500,1);
+        const t=Math.min((now-st)/600,1);
         step1Title.setAttribute('transform','translate(250,360) scale('+(1-t*0.3)+') translate(-250,-360)');
         if(t<1) requestAnimationFrame(shrink);
       }
@@ -1153,9 +1640,9 @@ const PASSWORD = "20260626";  // ⚠️ 在这里修改密码！
     // 3.2s：礼物盒弹出
     setTimeout(function(){
       giftBox.setAttribute('opacity','1');
-      bounceIn(giftBox, 600, 420, 250, 800, function(){
+      bounceIn(giftBox, 600, 420, 250, 900, function(){
         swingBox(giftBox, 250, 420, function(){
-          setTimeout(tearOpen, 300);
+          setTimeout(tearOpen, 400);
         });
       });
     }, 3200);
@@ -1169,7 +1656,7 @@ const PASSWORD = "20260626";  // ⚠️ 在这里修改密码！
       const e = p<0.5?4*p*p*p:1-Math.pow(-2*p+2,3)/2;
       tearRect.setAttribute('x', (500*(1-e))/2);
       tearRect.setAttribute('width', 500*(1-e));
-      if(p>0.1&&p<0.8) sheenOverlay.setAttribute('opacity', 0.4*Math.sin((p-0.1)/0.7*Math.PI));
+      if(p>0.1&&p<0.8) sheenOverlay.setAttribute('opacity', 0.5*Math.sin((p-0.1)/0.7*Math.PI));
       else sheenOverlay.setAttribute('opacity','0');
       if(p<1) requestAnimationFrame(anim);
       else onTearDone();
@@ -1220,6 +1707,9 @@ const PASSWORD = "20260626";  // ⚠️ 在这里修改密码！
 
     cornerIcons.classList.add('show');
 
+    // 开始飘落花瓣
+    startFallingPetals();
+
     // "你真棒！🫰" 祝贺文字
     congratsText.style.transition = 'opacity 0.6s ease';
     congratsText.setAttribute('opacity', '1');
@@ -1235,7 +1725,7 @@ const PASSWORD = "20260626";  // ⚠️ 在这里修改密码！
       fireOneFirework(120, 150, fwColors[0]);
       fireOneFirework(380, 180, fwColors[1]);
       fireOneFirework(250, 120, fwColors[2]);
-      launchConfetti(30);
+      launchConfetti(40);
     }, 300);
 
     setTimeout(function(){
@@ -1243,7 +1733,7 @@ const PASSWORD = "20260626";  // ⚠️ 在这里修改密码！
       fireOneFirework(420, 140, fwColors[4]);
       fireOneFirework(200, 100, fwColors[5]);
       fireOneFirework(320, 160, fwColors[6]);
-      launchConfetti(25);
+      launchConfetti(35);
     }, 1200);
 
     setTimeout(function(){
@@ -1252,7 +1742,7 @@ const PASSWORD = "20260626";  // ⚠️ 在这里修改密码！
       fireOneFirework(400, 150, fwColors[0]);
       fireOneFirework(170, 170, fwColors[2]);
       fireOneFirework(330, 110, fwColors[4]);
-      launchConfetti(35);
+      launchConfetti(45);
     }, 2200);
 
     setTimeout(function(){
@@ -1260,14 +1750,14 @@ const PASSWORD = "20260626";  // ⚠️ 在这里修改密码！
       fireOneFirework(350, 130, fwColors[3]);
       fireOneFirework(250, 180, fwColors[5]);
       fireOneFirework(420, 100, fwColors[7]);
-      launchConfetti(20);
+      launchConfetti(30);
     }, 3200);
 
     setTimeout(function(){
       fireOneFirework(200, 140, fwColors[6]);
       fireOneFirework(300, 120, fwColors[8]);
       fireOneFirework(250, 160, fwColors[0]);
-      launchConfetti(15);
+      launchConfetti(25);
     }, 4200);
 
     // 烟花层淡出
@@ -1284,9 +1774,9 @@ const PASSWORD = "20260626";  // ⚠️ 在这里修改密码！
       blessingCard.setAttribute('opacity','1');
       var st=performance.now();
       function pop(now){
-        var t=Math.min((now-st)/900,1);
+        var t=Math.min((now-st)/1000,1);
         var e=t<0.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
-        var os=t>0.7?Math.sin((t-0.7)/0.3*Math.PI*2)*0.06*(1-t):0;
+        var os=t>0.7?Math.sin((t-0.7)/0.3*Math.PI*2)*0.08*(1-t):0;
         blessingCard.setAttribute('transform','translate(250,500) scale('+(0.8+0.2*e+os)+')');
         if(t<1) requestAnimationFrame(pop);
         else blessingCard.setAttribute('transform','translate(250,500) scale(1)');
@@ -1342,17 +1832,17 @@ const PASSWORD = "20260626";  // ⚠️ 在这里修改密码！
           t.style.transition='opacity 0.6s ease';
           t.setAttribute('opacity','1');
         }, 50);
-      }, 7500+i*450);
+      }, 7500+i*500);
     });
 
     // 光泽扫过
-    var blessEndTime = 7500 + blessings.length * 450 + 400;
+    var blessEndTime = 7500 + blessings.length * 500 + 400;
     setTimeout(function(){
       var st=performance.now();
       function shine(now){
         var t=Math.min((now-st)/1200,1);
         cardSheen.setAttribute('x', -190+t*460);
-        cardSheen.setAttribute('opacity', 0.25*Math.sin(t*Math.PI));
+        cardSheen.setAttribute('opacity', 0.3*Math.sin(t*Math.PI));
         if(t<1) requestAnimationFrame(shine);
       }
       requestAnimationFrame(shine);
