@@ -1087,21 +1087,15 @@ const PASSWORD = "20260626";
     if (storyTimer) { clearTimeout(storyTimer); storyTimer = null; }
     if (typewriterTimer) { clearTimeout(typewriterTimer); typewriterTimer = null; }
 
-    // 清除之前的故事
-    const lines = storyTextArea.querySelectorAll('.story-line');
-    lines.forEach(function (l) {
-      if (l.classList.contains('active')) {
-        l.classList.remove('active'); l.classList.add('exit');
-        setTimeout(function(){ l.classList.remove('exit'); }, STORY_FADE);
-      }
-    });
+    // 完全清除之前的故事元素
+    storyTextArea.innerHTML = '';
 
     if (currentStory >= stories.length) { onStoriesComplete(); return; }
     updateProgress();
 
     // 创建新的故事行
     const newLine = document.createElement('div');
-    newLine.className = 'story-line';
+    newLine.className = 'story-line active';
     storyTextArea.appendChild(newLine);
 
     // 使用打字机效果
