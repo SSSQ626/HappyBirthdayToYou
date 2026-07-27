@@ -150,8 +150,23 @@ body { background: #0a0a1a; color: #f5e6ca; }
 .password-subtitle {
   font-size: 15px;
   color: rgba(245, 230, 202, 0.6);
-  margin-bottom: 35px;
+  margin-bottom: 20px;
   letter-spacing: 1px;
+}
+.password-hint {
+  font-size: 13px;
+  color: rgba(246, 195, 67, 0.7);
+  margin-bottom: 25px;
+  line-height: 1.8;
+  padding: 12px 20px;
+  background: rgba(246, 195, 67, 0.05);
+  border-radius: 10px;
+  border: 1px solid rgba(246, 195, 67, 0.15);
+  animation: hintGlow 3s ease-in-out infinite;
+}
+@keyframes hintGlow {
+  0%, 100% { box-shadow: 0 0 10px rgba(246, 195, 67, 0.1); }
+  50% { box-shadow: 0 0 20px rgba(246, 195, 67, 0.2); }
 }
 .password-input {
   width: 280px;
@@ -531,6 +546,7 @@ body { background: #0a0a1a; color: #f5e6ca; }
     <div class="password-icon">💝</div>
     <div class="password-title">需要密码才能查看</div>
     <div class="password-subtitle">请输入密码来解锁这份专属祝福</div>
+    <div class="password-hint">💡 提示：那是对我很重要的一天<br>✨ 一个值得永远记住的日子</div>
     <input type="password" id="password-input" class="password-input" placeholder="请输入密码" maxlength="20">
     <br>
     <button id="password-btn" class="password-btn">解锁 ✨</button>
