@@ -22,6 +22,96 @@ html, body {
 }
 body { background: #0a0a1a; color: #f5e6ca; }
 
+/* ===== 密码保护界面 ===== */
+#password-screen {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  z-index: 10000;
+  transition: opacity 0.8s ease, visibility 0.8s ease;
+}
+#password-screen.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.password-box {
+  text-align: center;
+  padding: 40px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+.password-icon {
+  font-size: 60px;
+  margin-bottom: 20px;
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+.password-title {
+  font-size: 24px;
+  color: #f6c343;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+.password-subtitle {
+  font-size: 14px;
+  color: #a0a0a0;
+  margin-bottom: 30px;
+}
+.password-input {
+  width: 250px;
+  padding: 15px 20px;
+  font-size: 18px;
+  text-align: center;
+  border: 2px solid rgba(246, 195, 67, 0.3);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.3);
+  color: #f5e6ca;
+  outline: none;
+  transition: all 0.3s ease;
+  letter-spacing: 5px;
+}
+.password-input:focus {
+  border-color: #f6c343;
+  box-shadow: 0 0 20px rgba(246, 195, 67, 0.3);
+}
+.password-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+  letter-spacing: 3px;
+}
+.password-btn {
+  margin-top: 20px;
+  padding: 12px 40px;
+  font-size: 16px;
+  color: #1a1a2e;
+  background: linear-gradient(135deg, #f6c343, #f0a6ca);
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: bold;
+}
+.password-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 20px rgba(246, 195, 67, 0.4);
+}
+.password-error {
+  margin-top: 15px;
+  color: #ff6b6b;
+  font-size: 14px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.password-error.show {
+  opacity: 1;
+}
+
 /* ===== 故事阶段 ===== */
 #story-stage {
   position: absolute; top: 0; left: 0; right: 0; bottom: 0;
@@ -186,6 +276,19 @@ body { background: #0a0a1a; color: #f5e6ca; }
 </style>
 </head>
 <body>
+
+<!-- ===== 密码保护界面 ===== -->
+<div id="password-screen">
+  <div class="password-box">
+    <div class="password-icon">🔒</div>
+    <div class="password-title">需要密码才能查看</div>
+    <div class="password-subtitle">请输入密码来解锁这份祝福</div>
+    <input type="password" id="password-input" class="password-input" placeholder="请输入密码" maxlength="20">
+    <br>
+    <button id="password-btn" class="password-btn">解锁 ✨</button>
+    <div id="password-error" class="password-error">密码错误，请重试</div>
+  </div>
+</div>
 
 <!-- ===== 故事阶段 ===== -->
 <div id="story-stage">
@@ -355,10 +458,58 @@ const totalStories = 12;
 const birthdayName = "LSQ";
 
 // ============================================================
+// 密码保护配置
+// ============================================================
+const PASSWORD = "5201314";  // ⚠️ 在这里修改密码！
+
+// ============================================================
 // 实现代码
 // ============================================================
 (function () {
   'use strict';
+
+  // ============================================================
+  // 密码验证
+  // ============================================================
+  const passwordScreen = document.getElementById('password-screen');
+  const passwordInput = document.getElementById('password-input');
+  const passwordBtn = document.getElementById('password-btn');
+  const passwordError = document.getElementById('password-error');
+
+  function checkPassword() {
+    const input = passwordInput.value.trim();
+    if (input === PASSWORD) {
+      passwordScreen.classList.add('hidden');
+      // 密码正确后才开始播放故事
+      setTimeout(() => {
+        startStory();
+      }, 800);
+    } else {
+      passwordError.classList.add('show');
+      passwordInput.value = '';
+      passwordInput.focus();
+      setTimeout(() => {
+        passwordError.classList.remove('show');
+      }, 2000);
+    }
+  }
+
+  passwordBtn.addEventListener('click', checkPassword);
+  passwordInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      checkPassword();
+    }
+  });
+
+  // 初始隐藏故事，等待密码验证
+  const storyStage = document.getElementById('story-stage');
+  storyStage.style.display = 'none';
+
+  // 密码验证通过后启动故事
+  window.startStory = function() {
+    storyStage.style.display = 'flex';
+    initStory();
+  };
 
   // --- DOM ---
   const storyStage     = document.getElementById('story-stage');
@@ -436,14 +587,21 @@ const birthdayName = "LSQ";
   // ============================================================
   // 故事放映
   // ============================================================
-  storyTitle.textContent = 'Happy Birthday！';
-  storySubtitle.textContent = '我们之间的回忆';
-  stories.forEach(function (item, i) {
-    const el = document.createElement('div');
-    el.className = 'story-line';
-    el.textContent = item.text;
-    storyTextArea.appendChild(el);
-  });
+  function initStory() {
+    storyTitle.textContent = 'Happy Birthday！';
+    storySubtitle.textContent = '我们之间的回忆';
+    stories.forEach(function (item, i) {
+      const el = document.createElement('div');
+      el.className = 'story-line';
+      el.textContent = item.text;
+      storyTextArea.appendChild(el);
+    });
+
+    // 开始播放故事
+    setTimeout(function() {
+      playNextStory();
+    }, 1000);
+  }
 
   function updateProgress() {
     storyProgress.textContent = (currentStory+1)+' / '+stories.length;
@@ -489,8 +647,6 @@ const birthdayName = "LSQ";
     playNextStory();
     skipHint.style.opacity = '0';
   });
-
-  playNextStory();
 
   // ============================================================
   // 音效系统（Web Audio API）
