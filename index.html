@@ -507,6 +507,14 @@ const PASSWORD = "20260626";  // ⚠️ 在这里修改密码！
 
   // 密码验证通过后启动故事
   window.startStory = function() {
+    // 重置故事状态
+    currentStory = 0;
+    storiesDone = false;
+    if (storyTimer) {
+      clearTimeout(storyTimer);
+      storyTimer = null;
+    }
+
     storyStage.style.display = 'flex';
     initStory();
   };
@@ -587,6 +595,9 @@ const PASSWORD = "20260626";  // ⚠️ 在这里修改密码！
   // 故事放映
   // ============================================================
   function initStory() {
+    // 清空之前的故事
+    storyTextArea.innerHTML = '';
+
     storyTitle.textContent = 'Happy Birthday！';
     storySubtitle.textContent = '我们之间的回忆';
     stories.forEach(function (item, i) {
